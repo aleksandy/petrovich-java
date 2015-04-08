@@ -8,10 +8,10 @@ import com.github.aleksandy.petrovich.Petrovich.Names;
 
 public class PetrovichTest {
 
+    Petrovich petrovich = new Petrovich();
+
     @Test
     public void test() {
-        Petrovich petrovich = new Petrovich();
-
         assertEquals(
             new Names("Иванова", "Ивана", "Ивановича", Gender.male),
             petrovich.inflectTo(
@@ -44,6 +44,13 @@ public class PetrovichTest {
             )
         );
 
+        assertEquals(
+            new Names("Ивановой", "Ольги", "Ивановны", Gender.female),
+            petrovich.inflectTo(
+                new Names("Иванова", "Ольга", "Ивановна", Gender.female),
+                Case.GENITIVE
+            )
+        );
     }
 
 }

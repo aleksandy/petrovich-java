@@ -272,7 +272,7 @@ firstname:
       mods: [-и, -е, -у, -ой, -е]
 
     - gender: female
-      test: [ша]
+      test: [га, ша]
       mods: [-и, -е, -у, -ей, -е]
 
     - gender: androgynous
