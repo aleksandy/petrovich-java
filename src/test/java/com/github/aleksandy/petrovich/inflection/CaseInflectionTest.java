@@ -13,7 +13,6 @@ import com.github.aleksandy.petrovich.Case;
 import com.github.aleksandy.petrovich.Gender;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
-import com.github.aleksandy.petrovich.test.DataLoader;
 
 public class CaseInflectionTest {
 
@@ -37,7 +36,7 @@ public class CaseInflectionTest {
         try (
             BufferedReader in = new BufferedReader(
                 new InputStreamReader(
-                    DataLoader.class.getResourceAsStream(resourceName),
+                    getClass().getResourceAsStream(resourceName),
                     UTF_8
                 )
             );
