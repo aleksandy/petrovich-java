@@ -247,8 +247,12 @@ firstname:
       mods: [., ., ., ., .]
 
     - gender: female
-      test: [рашель, нинель, николь, габриэль, даниэль]
+      test: [рашель, николь, габриэль, даниэль, адель, ассоль, севиль]
       mods: [., ., ., ., .]
+
+    - gender: female
+      test: [алия, альфия, вия, галия, дасия, дия, зульфия, ия, лия, лигия]
+      mods: [-и, -е, -ю, -ей, -е]
 
   suffixes:
     - gender: androgynous
@@ -272,8 +276,16 @@ firstname:
       mods: [-и, -е, -у, -ой, -е]
 
     - gender: female
-      test: [га, ша]
+      test: [га, ка]
+      mods: [-и, -е, -у, -ой, -е]
+
+    - gender: female
+      test: [ша]
       mods: [-и, -е, -у, -ей, -е]
+
+    - gender: female
+      test: [ца]
+      mods: [-ы, -е, -у, -ей, -е]
 
     - gender: androgynous
       test: [а]
@@ -288,7 +300,7 @@ firstname:
       mods: [-ы, -е, -у, -ой, -е]
 
     - gender: female
-      test: [я]
+      test: [я, ья]
       mods: [-и, -е, -ю, -ей, -е]
 
     - gender: male
