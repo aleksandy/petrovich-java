@@ -14,10 +14,10 @@ import javax.xml.bind.Unmarshaller;
 public class DataLoader {
 
     public static void main(String[] args) throws Exception {
-        System.setProperty("http.proxyHost", "172.31.33.113");
-        System.setProperty("http.proxyPort", "8081");
+//        System.setProperty("http.proxyHost", "172.31.33.113");
+//        System.setProperty("http.proxyPort", "8081");
 
-        String[] namesDicts = {"/female.names", "/male.names"};
+        String[] namesDicts = {"/female.names"/*, "/male.names"*/};
 
         JAXBContext jaxbContext = JAXBContext.newInstance(MorpherResult.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -70,8 +70,9 @@ public class DataLoader {
 
     private static InputStream getDeclesions(String name) throws IOException, MalformedURLException {
         String url = format.format(new String[] {URLEncoder.encode(name, "UTF-8")});
-        System.out.printf("get declensions url: %s%n", url);
-        URLConnection conn = new URL(url).openConnection(createProxy());
+        Proxy proxy = createProxy();
+        System.out.printf("get declensions url: %s%nusing proxy: %s%n", url, proxy);
+        URLConnection conn = new URL(url).openConnection(proxy);
         return conn.getInputStream();
     }
 

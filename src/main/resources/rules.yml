@@ -246,13 +246,18 @@ firstname:
       test: [шота]
       mods: [., ., ., ., .]
 
+
     - gender: female
-      test: [рашель, николь, габриэль, даниэль, адель, ассоль, севиль]
+      test: [рашель, николь, габриэль, даниэль, ассоль, севиль]
       mods: [., ., ., ., .]
 
     - gender: female
-      test: [алия, альфия, вия, галия, дасия, дия, зульфия, ия, лия, лигия]
+      test: [алия, альфия, галия, дасия, зульфия]
       mods: [-и, -е, -ю, -ей, -е]
+
+    - gender: female
+      test: [милица]
+      mods: [-ы, -е, -у, -ей, -е]
 
   suffixes:
     - gender: androgynous
@@ -276,16 +281,12 @@ firstname:
       mods: [-и, -е, -у, -ой, -е]
 
     - gender: female
-      test: [га, ка]
+      test: [жа, ша, ча, ща, га, ка, ха]
       mods: [-и, -е, -у, -ой, -е]
 
-    - gender: female
-      test: [ша]
-      mods: [-и, -е, -у, -ей, -е]
-
-    - gender: female
-      test: [ца]
-      mods: [-ы, -е, -у, -ей, -е]
+    - gender: male
+      test: [ло]
+      mods: [-ы, -е, -у, -ой, -е]
 
     - gender: androgynous
       test: [а]
@@ -300,7 +301,7 @@ firstname:
       mods: [-ы, -е, -у, -ой, -е]
 
     - gender: female
-      test: [я, ья]
+      test: [я]
       mods: [-и, -е, -ю, -ей, -е]
 
     - gender: male
@@ -324,12 +325,12 @@ firstname:
       mods: [-я, -ю, -я, -ем, -е]
 
     - gender: male
-      test: [б, в, г, д, ж, з, к, л, м, н, п, р, с, т, ф, х, ц, ч]
-      mods: [а, у, а, ом, е]
+      test: [ж, ш, ч, щ, ц]
+      mods: [а, у, а, ем, е]
 
-    - gender: androgynous
-      test: [ния, рия, вия]
-      mods: [-и, -и, -ю, -ем, -ем]
+    - gender: male
+      test: [б, в, г, д, з, к, л, м, н, п, р, с, т, ф, х]
+      mods: [а, у, а, ом, е]
 
 middlename:
   suffixes:
@@ -340,3 +341,4 @@ middlename:
     - gender: female
       test: [на]
       mods: [-ы, -е, -у, -ой, -е]
+

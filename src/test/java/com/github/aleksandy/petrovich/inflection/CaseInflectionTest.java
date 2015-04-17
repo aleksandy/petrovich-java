@@ -23,8 +23,13 @@ public class CaseInflectionTest {
     );
 
     @Test
+    public void maleNames() throws Exception {
+        testNames(MALE);
+    }
+
+    @Test
     public void femaleNames() throws Exception {
-        testNames(female);
+        testNames(FEMALE);
     }
 
     void testNames(Gender gender) throws Exception {
@@ -42,21 +47,24 @@ public class CaseInflectionTest {
             );
         ) {
             String name = null;
+            int pos = 1;
             while ((name = in.readLine()) != null) {
                 String[] expected = name.split("\\|");
                 assertEquals(name, 6, expected.length);
                 String firstName = expected[0];
-                testName(expected[1], firstName, GENITIVE, inflection);
-                testName(expected[2], firstName, DATIVE, inflection);
-                testName(expected[3], firstName, ACCUSATIVE, inflection);
-                testName(expected[4], firstName, INSTRUMENTAL, inflection);
-                testName(expected[5], firstName, PREPOSITIONAL, inflection);
+                testName(expected[1], firstName, GENITIVE, inflection, pos);
+                testName(expected[2], firstName, DATIVE, inflection, pos);
+                testName(expected[3], firstName, ACCUSATIVE, inflection, pos);
+                testName(expected[4], firstName, INSTRUMENTAL, inflection, pos);
+                testName(expected[5], firstName, PREPOSITIONAL, inflection, pos);
+
+                pos++;
             }
         }
     }
 
-    private void testName(String expected, String nominative, Case $case, CaseInflection inflection) {
-        String message = String.format("%s<%s>", nominative, $case.name());
+    private void testName(String expected, String nominative, Case $case, CaseInflection inflection, int pos) {
+        String message = String.format("%04d, %s<%s>", pos, nominative, $case.name());
         assertEquals(message, expected, inflection.inflectFirstNameTo(nominative, $case));
     }
 }
