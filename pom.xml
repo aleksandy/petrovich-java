@@ -43,7 +43,6 @@
   </developers>
 
   <properties>
-    <guava.version>18.0</guava.version>
     <jackson.version>2.5.2</jackson.version>
     <junit.version>4.12</junit.version>
   </properties>
@@ -93,12 +92,6 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>

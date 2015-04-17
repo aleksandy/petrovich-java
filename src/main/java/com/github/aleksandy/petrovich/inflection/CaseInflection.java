@@ -1,30 +1,55 @@
 package com.github.aleksandy.petrovich.inflection;
 
+import static com.github.aleksandy.petrovich.Gender.*;
+import static java.lang.String.*;
 import static java.lang.Math.*;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.github.aleksandy.petrovich.Case;
 import com.github.aleksandy.petrovich.Gender;
+import com.github.aleksandy.petrovich.exception.CantApplyRuleException;
+import com.github.aleksandy.petrovich.exception.PetrovichException;
+import com.github.aleksandy.petrovich.exception.UnknownCaseException;
+import com.github.aleksandy.petrovich.exception.UnknownRuleException;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.data.Rule;
 import com.github.aleksandy.petrovich.rules.data.RuleSet;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 
 public class CaseInflection {
 
-    private RulesProvider provider;
-    private Gender gender;
+    private final RulesProvider provider;
+    private final Gender gender;
+
+    private final Comparator<CharRuleTuple> ruleSorter = new Comparator<CharRuleTuple>() {
+
+        @Override
+        public int compare(CharRuleTuple x, CharRuleTuple y) {
+            int cmp = Integer.compare(y.chars.length(), x.chars.length());
+            if (cmp != 0) {
+                return cmp;
+            }
+            if (x.rule.getGender() != CaseInflection.this.gender) {
+                return 1;
+            }
+            if (y.rule.getGender() != CaseInflection.this.gender) {
+                return -1;
+            }
+            String xFirstSuffix = x.rule.getTestSuffixes().get(0);
+            String yFirstSuffix = y.rule.getTestSuffixes().get(0);
+
+            cmp = Integer.compare(yFirstSuffix.length(), xFirstSuffix.length());
+            if (cmp != 0) {
+                return cmp;
+            }
+
+            return xFirstSuffix.compareTo(yFirstSuffix);
+        }
+
+    };
 
     public CaseInflection(RulesProvider provider, Gender gender) {
         this.provider = provider;
@@ -32,15 +57,15 @@ public class CaseInflection {
     }
 
     public String inflectFirstNameTo(String firstName, Case $case) {
-        return inflectTo(firstName, $case, provider.getRules().getFirstName());
+        return inflectTo(firstName, $case, this.provider.getRules().getFirstName());
     }
 
     public String inflectLastNameTo(String lastName, Case $case) {
-        return inflectTo(lastName, $case, provider.getRules().getLastName());
+        return inflectTo(lastName, $case, this.provider.getRules().getLastName());
     }
 
     public String inflectMiddleNameTo(String middleName, Case $case) {
-        return inflectTo(middleName, $case, provider.getRules().getMiddleName());
+        return inflectTo(middleName, $case, this.provider.getRules().getMiddleName());
     }
 
     private String inflectTo(String name, Case $case, RuleSet ruleSet) {
@@ -54,28 +79,33 @@ public class CaseInflection {
                     chunks[idx],
                     $case,
                     ruleSet,
-                    ImmutableMap.of("first_word", firstWord)
+                    Collections.singletonMap("first_word", firstWord)
                 )
             );
         }
 
-        return Joiner.on("-")
-            .appendTo(
-                new StringBuilder(name.length() + 10),
-                result
-            ).toString();
+        StringBuilder sb = new StringBuilder(name.length() + 10);
+        for (String res : result) {
+            sb.append(res).append('-');
+        }
+        sb.setLength(sb.length() - 1);
+        return sb.toString();
     }
 
     private String findAndApply(String name, Case $case, RuleSet ruleSet, Map<String, Boolean> features) {
-        Rule rule = findRulesFor(name, ruleSet, features);
-
-        return rule == null ? name : apply(name, $case, rule);
+        try {
+            Rule rule = findFor(name, ruleSet, features);
+            return apply(name, rule, $case);
+        } catch (PetrovichException e) {
+            return name;
+        }
     }
 
-    private String apply(String name, Case $case, Rule rule) {
+    private String apply(String name, Rule rule, Case $case) throws CantApplyRuleException, UnknownCaseException {
         StringBuilder result = new StringBuilder(name.length() + 5).append(name);
+
         CharacterIterator itr = new StringCharacterIterator(
-            findCaseModificator($case, rule)
+            modificatorFor($case, rule)
         );
         char $char = itr.current();
         while ($char != CharacterIterator.DONE) {
@@ -83,6 +113,11 @@ public class CaseInflection {
                 case '.' :
                     break;
                 case '-' :
+                    if (result.length() == 0) {
+                        throw new CantApplyRuleException(
+                            format("Can't apply rule for '%s' case %s", name, $case)
+                        );
+                    }
                     result.setLength(result.length() - 1);
                     break;
                 default:
@@ -94,7 +129,7 @@ public class CaseInflection {
         return result.toString();
     }
 
-    private String findCaseModificator(Case $case, Rule rule) {
+    private String modificatorFor(Case $case, Rule rule) throws UnknownCaseException {
         switch ($case) {
             case NOMINATIVE :
                 return ".";
@@ -105,19 +140,23 @@ public class CaseInflection {
             case PREPOSITIONAL :
                 return rule.getModSuffixes().get($case.getSuffixesIndex());
             default:
-                throw new UnsupportedOperationException(
+                throw new UnknownCaseException(
                     String.format("Unknown grammatical case: %s", $case)
                 );
         }
     }
 
-    private Rule findRulesFor(String name, RuleSet ruleSet, Map<String, Boolean> features) {
+    private Rule findFor(
+        String name,
+        RuleSet ruleSet,
+        Map<String, Boolean> features
+    ) throws UnknownRuleException {
         Set<String> tags = extractTags(features);
 
-        if (ruleSet.getExceptions() != null) {
-            Rule rule = find(name, ruleSet.getExceptions(), true, tags);
-            if (rule != null) {
-                return rule;
+        if (!ruleSet.getExceptions().isEmpty()) {
+            try {
+                return find(name, ruleSet.getExceptions(), true, tags);
+            } catch (UnknownRuleException e) {
             }
         }
 
@@ -140,52 +179,113 @@ public class CaseInflection {
         List<Rule> rules,
         final boolean matchWholeWord,
         final Set<String> tags
-    ) {
-        final String loweredName = name.toLowerCase();
-        final int loweredNameLength = loweredName.length();
-
-        return Iterables.find(rules, new Predicate<Rule>() {
-
-            @Override
-            public boolean apply(Rule rule) {
-                if (
-                    !Iterables.filter(rule.getTags(), new Predicate<String>() {
-
-                        @Override
-                        public boolean apply(String input) {
-                            return !tags.contains(input);
-                        }
-
-                    }).iterator().hasNext()
-                ) {
-                    Gender genderRule = Gender.valueOf(rule.getGender());
-                    if (
-                        (genderRule == Gender.male && gender == Gender.male) ||
-                        (genderRule == Gender.female && gender == Gender.female)
-                    ) {
-                        if (matchWholeWord) {
-                            String test = loweredName;
-                            for (String chars : rule.getTestSuffixes()) {
-                                if (test.equals(chars)) {
-                                    return true;
-                                }
-                            }
-                        } else {
-                            for (String chars : rule.getTestSuffixes()) {
-                                String test = loweredName.substring(
-                                    max(0, loweredNameLength - chars.length())
-                                );
-                                if (test.equals(chars)) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-                return false;
+    ) throws UnknownRuleException {
+        String loweredName = name.toLowerCase();
+        List<CharRuleTuple> matchedRules = new ArrayList<>();
+        for (Rule rule : rules) {
+            String chars = matchRule(loweredName, rule, tags, matchWholeWord);
+            if (chars != null) {
+                matchedRules.add(
+                    new CharRuleTuple(chars, rule)
+                );
             }
+        }
+        if (matchedRules.isEmpty()) {
+            throw new UnknownRuleException(
+                format(
+                    "Can't find rule for %s", name
+                )
+            );
+        }
 
-        }, null);
+        Collections.sort(matchedRules, this.ruleSorter);
+        return matchedRules.get(0).rule;
+
+//        return Iterables.find(rules, new Predicate<Rule>() {
+//
+//            @Override
+//            public boolean apply(Rule rule) {
+//
+//                if (
+//
+//                    rule.getTags().removeAll(tags);
+//                ) {
+//                    Gender genderRule = Gender.valueOf(rule.getGender());
+//                    if (
+//                        (genderRule != Gender.male && CaseInflection.this.gender != Gender.female)
+//                        && (genderRule != Gender.female && CaseInflection.this.gender == Gender.female)
+//                    ) {
+//                        if (matchWholeWord) {
+//                            String test = loweredName;
+//                            for (String chars : rule.getTestSuffixes()) {
+//                                if (test.equals(chars)) {
+//                                    return true;
+//                                }
+//                            }
+//                        } else {
+//                            for (String chars : rule.getTestSuffixes()) {
+//                                String test = loweredName.substring(
+//                                    max(0, loweredNameLength - chars.length())
+//                                );
+//                                if (test.equals(chars)) {
+//                                    return true;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                return false;
+//            }
+//
+//        }, null);
     }
 
+    private String matchRule(String loweredName, Rule rule, Set<String> tags, boolean matchWholeWord) {
+        Gender ruleGender = rule.getGender();
+        if (
+            !tagsAllow(tags, rule.getTags())
+            || (
+                // if any of values of gender is "androgynous" then rule can be matched
+                (ruleGender == MALE && this.gender == FEMALE)
+                || (ruleGender == FEMALE && this.gender != FEMALE)
+            )
+        ) {
+            return null;
+        }
+
+        if (matchWholeWord) {
+            for (String chars : rule.getTestSuffixes()) {
+                if (loweredName.equals(chars)) {
+                    return chars;
+                }
+            }
+        } else {
+            int loweredNameLength = loweredName.length();
+            for (String chars : rule.getTestSuffixes()) {
+                String test = loweredName.substring(
+                    max(0, loweredNameLength - chars.length())
+                );
+                if (test.equals(chars)) {
+                    return chars;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean tagsAllow(Set<String> tags, Set<String> ruleTags) {
+        Set<String> result = new HashSet<>(ruleTags);
+        result.removeAll(tags);
+        return result.isEmpty();
+    }
+
+    private static class CharRuleTuple {
+        final String chars;
+        final Rule rule;
+
+        CharRuleTuple(String chars, Rule rule) {
+            this.chars = chars;
+            this.rule = rule;
+        }
+    }
 }

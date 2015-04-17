@@ -1,16 +1,18 @@
 package com.github.aleksandy.petrovich.rules.data;
 
-import static com.github.aleksandy.petrovich.rules.data.Utils.*;
+import static com.github.aleksandy.petrovich.Utils.*;
 import static java.util.Collections.*;
 
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.aleksandy.petrovich.Gender;
 
 public class Rule {
 
     @JsonProperty("gender")
-    private String gender;
+    private Gender gender;
 
     @JsonProperty("test")
     private List<String> testSuffixes = emptyList();
@@ -19,18 +21,18 @@ public class Rule {
     private List<String> modSuffixes = emptyList();
 
     @JsonProperty("tags")
-    private List<String> tags = emptyList();
+    private Set<String> tags = emptySet();
 
-    public String getGender() {
-        return gender;
+    public Gender getGender() {
+        return this.gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Gender gender) {
         this.gender = gender;
     }
 
     public List<String> getTestSuffixes() {
-        return testSuffixes;
+        return this.testSuffixes;
     }
 
     public void setTestSuffixes(List<String> testSuffixes) {
@@ -38,18 +40,18 @@ public class Rule {
     }
 
     public List<String> getModSuffixes() {
-        return modSuffixes;
+        return this.modSuffixes;
     }
 
     public void setModSuffixes(List<String> modSuffixes) {
         this.modSuffixes = nullToEmpty(modSuffixes);
     }
 
-    public List<String> getTags() {
-        return tags;
+    public Set<String> getTags() {
+        return this.tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = nullToEmpty(tags);
     }
 

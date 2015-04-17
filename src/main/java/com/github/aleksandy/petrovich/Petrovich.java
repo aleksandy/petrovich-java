@@ -6,7 +6,6 @@ import com.github.aleksandy.petrovich.inflection.CaseInflection;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.loader.RulesLoader;
 import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
-import com.google.common.base.Joiner;
 
 public class Petrovich {
 
@@ -30,7 +29,7 @@ public class Petrovich {
                 ? Gender.detect(names.middleName)
                 : names.gender;
 
-        CaseInflection inflection = new CaseInflection(provider, gender);
+        CaseInflection inflection = new CaseInflection(this.provider, gender);
 
         return new Names(
             inflection.inflectLastNameTo(names.lastName, $case),
@@ -57,25 +56,27 @@ public class Petrovich {
 
         @Override
         public String toString() {
-            return Joiner.on(' ')
-                .skipNulls()
-                .appendTo(
-                    new StringBuilder(150),
-                    lastName,
-                    firstName,
-                    middleName
-                )
-                .toString();
+            StringBuilder sb = new StringBuilder(150);
+            if (this.lastName != null) {
+                sb.append(this.lastName).append(' ');
+            }
+            if (this.firstName != null) {
+                sb.append(this.firstName).append(' ');
+            }
+            if (this.middleName != null) {
+                sb.append(this.middleName);
+            }
+            return sb.toString().trim();
         }
 
         @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + firstName.hashCode();
-            result = prime * result + lastName.hashCode();
-            result = prime * result + (middleName == null ? 0 : middleName.hashCode());
-            result = prime * result + gender.hashCode();
+            result = prime * result + this.firstName.hashCode();
+            result = prime * result + this.lastName.hashCode();
+            result = prime * result + (this.middleName == null ? 0 : this.middleName.hashCode());
+            result = prime * result + this.gender.hashCode();
             return result;
         }
 
@@ -86,14 +87,14 @@ public class Petrovich {
             }
             if (obj instanceof Names) {
                 Names other = (Names) obj;
-                return firstName.equals(other.firstName)
-                    && lastName.equals(other.lastName)
+                return this.firstName.equals(other.firstName)
+                    && this.lastName.equals(other.lastName)
                     && (
-                        middleName == null
+                        this.middleName == null
                             ? other.middleName == null
-                            : middleName.equals(other.middleName)
+                            : this.middleName.equals(other.middleName)
                     )
-                    && gender == other.gender;
+                    && this.gender == other.gender;
             }
             return false;
         }
