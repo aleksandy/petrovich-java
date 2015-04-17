@@ -9,7 +9,7 @@
 
   <groupId>com.github.aleksandy</groupId>
   <artifactId>petrovich</artifactId>
-  <version>1.2</version>
+  <version>1.2.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>petrovich-java</name>
