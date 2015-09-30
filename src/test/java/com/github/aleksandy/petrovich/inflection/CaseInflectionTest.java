@@ -2,11 +2,11 @@ package com.github.aleksandy.petrovich.inflection;
 
 import static com.github.aleksandy.petrovich.Case.*;
 import static com.github.aleksandy.petrovich.Gender.*;
+import static com.github.aleksandy.petrovich.inflection.CaseInflection.*;
 import static java.nio.charset.StandardCharsets.*;
 import static org.junit.Assert.*;
 
 import java.io.*;
-
 import org.junit.Test;
 
 import com.github.aleksandy.petrovich.Case;
@@ -67,4 +67,33 @@ public class CaseInflectionTest {
         String message = String.format("%04d, %s<%s>", pos, nominative, $case.name());
         assertEquals(message, expected, inflection.inflectFirstNameTo(nominative, $case));
     }
+
+    @Test(expected=NullPointerException.class)
+    public void nullName() throws Exception {
+        new CaseInflection(this.provider, MALE).inflectFirstNameTo(null, GENITIVE);
+    }
+
+    @Test
+    public void testNormalizeName() throws Exception {
+        assertEquals("1", normalizeName("-1"));
+        assertEquals("1", normalizeName("1-"));
+        assertEquals("1", normalizeName("-1-"));
+        assertEquals("1-2-3", normalizeName("1-2-3"));
+        assertEquals("", normalizeName("-"));
+        assertEquals("", normalizeName("--"));
+    }
+
+    @Test
+    public void trash() throws Exception {
+        CaseInflection inflection = new CaseInflection(this.provider, MALE);
+        testTrash("", inflection);
+        testTrash("1-2-3", inflection);
+        testTrash("-----", inflection);
+    }
+
+    private void testTrash(String name, CaseInflection inflection) {
+        assertEquals(name, inflection.inflectFirstNameTo(name, GENITIVE));
+    }
+
 }
+

@@ -2,6 +2,7 @@ package com.github.aleksandy.petrovich.inflection;
 
 import static com.github.aleksandy.petrovich.Gender.*;
 import static java.lang.String.*;
+import static java.util.Objects.requireNonNull;
 import static java.lang.Math.*;
 
 import java.text.CharacterIterator;
@@ -69,12 +70,13 @@ public class CaseInflection {
     }
 
     private String inflectTo(String name, Case $case, RuleSet ruleSet) {
-        String[] chunks = name.split("-");
+        name = requireNonNull(name, "name must not be null");
+        String[] chunks = normalizeName(name).split("-");
         int chunksLength = chunks.length;
-        List<String> result = new ArrayList<String>(chunksLength);
+        String[] result = new String[chunksLength];
         for (int idx = 0; idx < chunksLength; idx++) {
             boolean firstWord = idx == 0 && chunksLength > 1;
-            result.add(
+            result[idx] = (
                 findAndApply(
                     chunks[idx],
                     $case,
@@ -88,8 +90,25 @@ public class CaseInflection {
         for (String res : result) {
             sb.append(res).append('-');
         }
-        sb.setLength(sb.length() - 1);
-        return sb.toString();
+        int length = sb.length();
+        if (length > 0) {
+            sb.setLength(length - 1);
+        }
+        String stringResult = sb.toString();
+        return stringResult.isEmpty() ? name : stringResult;
+    }
+
+    static String normalizeName(String name) {
+        int length = name.length();
+        int start = 0;
+        int stop = length - 1;
+        while (start < length && name.charAt(start) == '-') {
+            start++;
+        }
+        while (start < stop && name.charAt(stop) == '-') {
+            stop--;
+        }
+        return start == length ? "" : name.substring(start, stop + 1);
     }
 
     private String findAndApply(String name, Case $case, RuleSet ruleSet, Map<String, Boolean> features) {
