@@ -7,7 +7,6 @@ import static java.nio.charset.StandardCharsets.*;
 import static org.junit.Assert.*;
 
 import java.io.*;
-import java.util.Locale;
 
 import org.junit.Test;
 
@@ -46,9 +45,9 @@ public class CaseInflectionTest {
                     getClass().getResourceAsStream(resourceName),
                     UTF_8
                 )
-            );
+            )
         ) {
-            String name = null;
+            String name;
             int pos = 1;
             while ((name = in.readLine()) != null) {
                 String[] expected = name.split("\\|");
@@ -71,12 +70,12 @@ public class CaseInflectionTest {
     }
 
     @Test(expected=NullPointerException.class)
-    public void nullName() throws Exception {
+    public void nullName() {
         new CaseInflection(this.provider, MALE).inflectFirstNameTo(null, GENITIVE);
     }
 
     @Test
-    public void testNormalizeName() throws Exception {
+    public void testNormalizeName() {
         assertEquals("1", normalizeName("-1"));
         assertEquals("1", normalizeName("1-"));
         assertEquals("1", normalizeName("-1-"));
@@ -86,7 +85,7 @@ public class CaseInflectionTest {
     }
 
     @Test
-    public void trash() throws Exception {
+    public void trash() {
         CaseInflection inflection = new CaseInflection(this.provider, MALE);
         testTrash("", inflection);
         testTrash("1-2-3", inflection);
