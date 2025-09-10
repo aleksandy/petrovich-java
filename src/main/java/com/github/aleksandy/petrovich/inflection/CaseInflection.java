@@ -12,10 +12,7 @@ import java.util.Map.Entry;
 
 import com.github.aleksandy.petrovich.Case;
 import com.github.aleksandy.petrovich.Gender;
-import com.github.aleksandy.petrovich.exception.CantApplyRuleException;
-import com.github.aleksandy.petrovich.exception.PetrovichException;
-import com.github.aleksandy.petrovich.exception.UnknownCaseException;
-import com.github.aleksandy.petrovich.exception.UnknownRuleException;
+import com.github.aleksandy.petrovich.PetrovichException;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.data.Rule;
 import com.github.aleksandy.petrovich.rules.data.RuleSet;
@@ -120,7 +117,7 @@ public class CaseInflection {
         }
     }
 
-    private String apply(String name, Rule rule, Case $case) throws CantApplyRuleException, UnknownCaseException {
+    private String apply(String name, Rule rule, Case $case) {
         StringBuilder result = new StringBuilder(name.length() + 5).append(name);
 
         CharacterIterator itr = new StringCharacterIterator(
@@ -133,9 +130,7 @@ public class CaseInflection {
                     break;
                 case '-' :
                     if (result.length() == 0) {
-                        throw new CantApplyRuleException(
-                            format("Can't apply rule for '%s' case %s", name, $case)
-                        );
+                        throw new PetrovichException(format("Can't apply rule for '%s' case %s", name, $case));
                     }
                     result.setLength(result.length() - 1);
                     break;
@@ -148,7 +143,7 @@ public class CaseInflection {
         return result.toString();
     }
 
-    private String modificatorFor(Case $case, Rule rule) throws UnknownCaseException {
+    private String modificatorFor(Case $case, Rule rule) {
         switch ($case) {
             case NOMINATIVE :
                 return ".";
@@ -159,9 +154,7 @@ public class CaseInflection {
             case PREPOSITIONAL :
                 return rule.getModSuffixes().get($case.getSuffixesIndex());
             default:
-                throw new UnknownCaseException(
-                    String.format("Unknown grammatical case: %s", $case)
-                );
+                throw new PetrovichException(String.format("Unknown grammatical case: '%s'.", $case));
         }
     }
 
@@ -169,17 +162,22 @@ public class CaseInflection {
         String name,
         RuleSet ruleSet,
         Map<String, Boolean> features
-    ) throws UnknownRuleException {
+    ) {
         Set<String> tags = extractTags(features);
 
         if (!ruleSet.getExceptions().isEmpty()) {
-            try {
-                return find(name, ruleSet.getExceptions(), true, tags);
-            } catch (UnknownRuleException e) {
+            var result = find(name, ruleSet.getExceptions(), true, tags);
+            if (result != null) {
+                return result;
             }
         }
 
-        return find(name, ruleSet.getSuffixes(), false, tags);
+        var result = find(name, ruleSet.getSuffixes(), false, tags);
+        if (result == null) {
+            throw new PetrovichException(format("Can't find rule for %s", name));
+        }
+
+        return result;
     }
 
     private Set<String> extractTags(Map<String, Boolean> features) {
@@ -198,7 +196,7 @@ public class CaseInflection {
         List<Rule> rules,
         final boolean matchWholeWord,
         final Set<String> tags
-    ) throws UnknownRuleException {
+    ) {
         String loweredName = name.toLowerCase();
         List<CharRuleTuple> matchedRules = new ArrayList<>();
         for (Rule rule : rules) {
@@ -210,11 +208,7 @@ public class CaseInflection {
             }
         }
         if (matchedRules.isEmpty()) {
-            throw new UnknownRuleException(
-                format(
-                    "Can't find rule for %s", name
-                )
-            );
+            return null;
         }
 
         Collections.sort(matchedRules, this.ruleSorter);

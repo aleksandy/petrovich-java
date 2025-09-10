@@ -5,7 +5,6 @@ import static java.lang.String.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.github.aleksandy.petrovich.exception.UnknownCaseException;
 
 public enum Gender {
 
@@ -45,15 +44,13 @@ public enum Gender {
     }
 
     @JsonCreator
-    public static Gender byValue(String value) throws UnknownCaseException {
+    public static Gender byValue(String value) {
         for (Gender gender : values()) {
             if (gender.getValue().equals(value)) {
                 return gender;
             }
         }
-        throw new UnknownCaseException(
-            format("Incorrect gender value '%s'", value)
-        );
+        throw new PetrovichException(format("Incorrect gender value '%s'", value));
     }
 
 }
