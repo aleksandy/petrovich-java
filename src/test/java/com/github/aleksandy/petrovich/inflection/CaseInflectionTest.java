@@ -4,33 +4,32 @@ import static com.github.aleksandy.petrovich.Case.*;
 import static com.github.aleksandy.petrovich.Gender.*;
 import static com.github.aleksandy.petrovich.inflection.CaseInflection.*;
 import static java.nio.charset.StandardCharsets.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.*;
 import java.util.Locale;
-
-import org.junit.Test;
 
 import com.github.aleksandy.petrovich.Case;
 import com.github.aleksandy.petrovich.Gender;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-public class CaseInflectionTest {
+class CaseInflectionTest {
 
-    private final RulesProvider provider = (
-        new RulesProvider(
-            new YamlRulesLoader()
-        )
-    );
+    private static final int COUNT_CASES = Case.values().length;
 
-    @Test
-    public void maleNames() throws Exception {
+    private final RulesProvider provider = new RulesProvider(new YamlRulesLoader());
+
+    @Test void maleNames() throws Exception {
         testNames(MALE);
     }
 
-    @Test
-    public void femaleNames() throws Exception {
+    @Test void femaleNames() throws Exception {
         testNames(FEMALE);
     }
 
@@ -48,11 +47,13 @@ public class CaseInflectionTest {
                 )
             );
         ) {
-            String name = null;
+            String name;
             int pos = 1;
             while ((name = in.readLine()) != null) {
                 String[] expected = name.split("\\|");
-                assertEquals(name, 6, expected.length);
+                assertThat(expected)
+                    .as(name)
+                    .hasSize(COUNT_CASES);
                 String firstName = expected[0];
                 testName(expected[1], firstName, GENITIVE, inflection, pos);
                 testName(expected[2], firstName, DATIVE, inflection, pos);
@@ -66,35 +67,28 @@ public class CaseInflectionTest {
     }
 
     private void testName(String expected, String nominative, Case $case, CaseInflection inflection, int pos) {
-        String message = String.format("%04d, %s<%s>", pos, nominative, $case.name());
-        assertEquals(message, expected, inflection.inflectFirstNameTo(nominative, $case));
+        assertThat(inflection.inflectFirstNameTo(nominative, $case))
+            .as("%04d, %s<%s>", pos, nominative, $case.name())
+            .isEqualTo(expected);
     }
 
-    @Test(expected=NullPointerException.class)
-    public void nullName() throws Exception {
-        new CaseInflection(this.provider, MALE).inflectFirstNameTo(null, GENITIVE);
+    @Test void nullName() {
+        assertThatThrownBy(() -> new CaseInflection(this.provider, MALE).inflectFirstNameTo(null, GENITIVE))
+            .isInstanceOf(NullPointerException.class);
+        ;
     }
 
-    @Test
-    public void testNormalizeName() throws Exception {
-        assertEquals("1", normalizeName("-1"));
-        assertEquals("1", normalizeName("1-"));
-        assertEquals("1", normalizeName("-1-"));
-        assertEquals("1-2-3", normalizeName("1-2-3"));
-        assertEquals("", normalizeName("-"));
-        assertEquals("", normalizeName("--"));
+    @CsvSource({"-1,1", "1-,1", "-1-,1", "1-2-3,1-2-3", "-,''", "--,''"})
+    @ParameterizedTest(name = "[{index}] {arguments}")
+    void testNormalizeName(String input, String expected) {
+        assertThat(normalizeName(input)).isEqualTo(expected);
     }
 
-    @Test
-    public void trash() throws Exception {
+    @ValueSource(strings = { "", "1-2-3", "-----"})
+    @ParameterizedTest(name = "[{index}] {arguments}")
+    void trash(String name) {
         CaseInflection inflection = new CaseInflection(this.provider, MALE);
-        testTrash("", inflection);
-        testTrash("1-2-3", inflection);
-        testTrash("-----", inflection);
-    }
-
-    private void testTrash(String name, CaseInflection inflection) {
-        assertEquals(name, inflection.inflectFirstNameTo(name, GENITIVE));
+        assertThat(inflection.inflectFirstNameTo(name, GENITIVE)).isEqualTo(name);
     }
 
 }
