@@ -1,17 +1,17 @@
-package com.github.aleksandy.petrovich.inflection;
+package com.github.aleksandy.petrovich;
 
 import static com.github.aleksandy.petrovich.Case.*;
+import static com.github.aleksandy.petrovich.CaseInflection.*;
 import static com.github.aleksandy.petrovich.Gender.*;
-import static com.github.aleksandy.petrovich.inflection.CaseInflection.*;
 import static java.nio.charset.StandardCharsets.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.*;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.BiConsumer;
 
-import com.github.aleksandy.petrovich.Case;
-import com.github.aleksandy.petrovich.Gender;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class CaseInflectionTest {
                     getClass().getResourceAsStream(resourceName),
                     UTF_8
                 )
-            );
+            )
         ) {
             String name;
             int pos = 1;
@@ -72,23 +72,38 @@ class CaseInflectionTest {
             .isEqualTo(expected);
     }
 
-    @Test void nullName() {
-        assertThatThrownBy(() -> new CaseInflection(this.provider, MALE).inflectFirstNameTo(null, GENITIVE))
-            .isInstanceOf(NullPointerException.class);
-        ;
+    @Test void inflectToMethodsShouldThrowNullPointerExceptionWhenNameIsNull() {
+        var inflection = new CaseInflection(this.provider, MALE);
+        List<BiConsumer<String, Case>> inflects = List.of(
+            inflection::inflectLastNameTo, inflection::inflectFirstNameTo, inflection::inflectMiddleNameTo
+        );
+
+        assertThat(inflects).allSatisfy(inflect ->
+            assertThatThrownBy(() -> inflect.accept(null, GENITIVE))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Name must not be null.")
+        );
     }
 
     @CsvSource({"-1,1", "1-,1", "-1-,1", "1-2-3,1-2-3", "-,''", "--,''"})
     @ParameterizedTest(name = "[{index}] {arguments}")
-    void testNormalizeName(String input, String expected) {
+    void normalizeNameShouldStripLeadingAndTrailingDashes(String input, String expected) {
         assertThat(normalizeName(input)).isEqualTo(expected);
     }
 
     @ValueSource(strings = { "", "1-2-3", "-----"})
     @ParameterizedTest(name = "[{index}] {arguments}")
-    void trash(String name) {
+    void inflectToMethodsShouldThrowExceptionWhenInflectionRuleNotFound(String name) {
         CaseInflection inflection = new CaseInflection(this.provider, MALE);
-        assertThat(inflection.inflectFirstNameTo(name, GENITIVE)).isEqualTo(name);
+        List<BiConsumer<String, Case>> inflects = List.of(
+            inflection::inflectLastNameTo, inflection::inflectFirstNameTo, inflection::inflectMiddleNameTo
+        );
+
+        assertThat(inflects).allSatisfy(inflect ->
+            assertThatThrownBy(() -> inflect.accept(name, GENITIVE))
+                .isInstanceOf(PetrovichException.class)
+                .hasMessageMatching("Inflection rule '([^']*)' has not been found.")
+        );
     }
 
 }

@@ -2,10 +2,12 @@ package com.github.aleksandy.petrovich;
 
 import static java.util.Objects.*;
 
-import com.github.aleksandy.petrovich.inflection.CaseInflection;
 import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.loader.RulesLoader;
 import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
+
+import java.util.Objects;
+import java.util.StringJoiner;
 
 public class Petrovich {
 
@@ -41,43 +43,27 @@ public class Petrovich {
         );
     }
 
-    public static class Names {
-        public final String firstName;
-        public final String lastName;
-        public final String middleName;
-        public final Gender gender;
+    public record Names(String lastName, String firstName, String middleName, Gender gender) {
 
-        public Names(String lastName, String firstName, String middleName, Gender gender) {
-            this.lastName = requireNonNull(lastName, "Last name was not provided");
-            this.firstName = requireNonNull(firstName, "First name was not provided");
-            this.middleName = middleName;
-            this.gender = gender;
+        public Names {
+            lastName = requireNonNull(lastName, "Last name was not provided");
+            firstName = requireNonNull(firstName, "First name was not provided");
         }
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder(150);
+            var sb = new StringJoiner(" ");
             if (this.lastName != null) {
-                sb.append(this.lastName).append(' ');
+                sb.add(this.lastName);
             }
             if (this.firstName != null) {
-                sb.append(this.firstName).append(' ');
+                sb.add(this.firstName);
+                if (this.middleName != null) {
+                    sb.add(this.middleName);
+                }
             }
-            if (this.middleName != null) {
-                sb.append(this.middleName);
-            }
-            return sb.toString().trim();
-        }
 
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + this.firstName.hashCode();
-            result = prime * result + this.lastName.hashCode();
-            result = prime * result + (this.middleName == null ? 0 : this.middleName.hashCode());
-            result = prime * result + this.gender.hashCode();
-            return result;
+            return sb.toString();
         }
 
         @Override
@@ -85,15 +71,10 @@ public class Petrovich {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof Names) {
-                Names other = (Names) obj;
+            if (obj instanceof Names other) {
                 return this.firstName.equals(other.firstName)
                     && this.lastName.equals(other.lastName)
-                    && (
-                        this.middleName == null
-                            ? other.middleName == null
-                            : this.middleName.equals(other.middleName)
-                    )
+                    && Objects.equals(this.middleName, other.middleName)
                     && this.gender == other.gender;
             }
             return false;

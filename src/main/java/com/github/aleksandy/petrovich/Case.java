@@ -1,22 +1,24 @@
 package com.github.aleksandy.petrovich;
 
+/**
+ * Supported cases for inflect.
+ */
 public enum Case {
 
-    NOMINATIVE(-1),
-    GENITIVE(0),
-    DATIVE(1),
-    ACCUSATIVE(2),
-    INSTRUMENTAL(3),
-    PREPOSITIONAL(4);
+    NOMINATIVE,
+    GENITIVE,
+    DATIVE,
+    ACCUSATIVE,
+    INSTRUMENTAL,
+    PREPOSITIONAL;
 
-    private final int suffixesIndex;
-
-    private Case(int suffixesIndex) {
-        this.suffixesIndex = suffixesIndex;
-    }
-
+    /**
+     * The method returns the index of the suffix array element in inflection rules.
+     *
+     * @return index
+     */
     public int getSuffixesIndex() {
-        return this.suffixesIndex;
+        return ordinal() - 1;
     }
 
 }

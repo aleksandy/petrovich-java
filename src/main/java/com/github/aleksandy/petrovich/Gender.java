@@ -1,6 +1,5 @@
 package com.github.aleksandy.petrovich;
 
-import static com.github.aleksandy.petrovich.Utils.*;
 import static java.lang.String.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -14,7 +13,7 @@ public enum Gender {
 
     private final String value;
 
-    private Gender(String value) {
+    Gender(String value) {
         this.value = value;
     }
 
@@ -24,12 +23,12 @@ public enum Gender {
     }
 
     public static Gender detect(String middleName) {
-        if (isNullOrWhiteSpace(middleName)) {
-            throw new IllegalArgumentException(
+        if (middleName == null || middleName.isBlank()) {
+            throw new PetrovichException(
                 "Parameter 'middleName' is null or blank. "
                 + "You must specify middle name to detect gender."
             );
-        };
+        }
 
         if (
             middleName.endsWith("ич")
