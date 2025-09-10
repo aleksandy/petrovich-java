@@ -7,6 +7,8 @@ import static java.nio.charset.StandardCharsets.*;
 import static org.junit.Assert.*;
 
 import java.io.*;
+import java.util.Locale;
+
 import org.junit.Test;
 
 import com.github.aleksandy.petrovich.Case;
@@ -36,7 +38,7 @@ public class CaseInflectionTest {
         CaseInflection inflection = new CaseInflection(this.provider, gender);
         String resourceName = String.format(
             "/%s.names.expected",
-            gender.name()
+            gender.name().toLowerCase(Locale.ROOT)
         );
         try (
             BufferedReader in = new BufferedReader(
