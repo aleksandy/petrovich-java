@@ -2,7 +2,7 @@ package com.github.aleksandy.petrovich;
 
 import static java.util.Objects.*;
 
-import com.github.aleksandy.petrovich.rules.data.Rules;
+import com.github.aleksandy.petrovich.rules.Rules;
 
 import java.util.Objects;
 import java.util.StringJoiner;

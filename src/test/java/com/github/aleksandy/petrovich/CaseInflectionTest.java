@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 
-import com.github.aleksandy.petrovich.rules.data.Rules;
-import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
+import com.github.aleksandy.petrovich.rules.Rules;
+import com.github.aleksandy.petrovich.rules.yaml.YamlRules;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -24,7 +24,7 @@ class CaseInflectionTest {
 
     private static final int COUNT_CASES = Case.values().length;
 
-    private final Rules rules = new YamlRulesLoader().getRules();
+    private final Rules rules = new YamlRules();
 
     @EnumSource(value = Gender.class, names = { "MALE", "FEMALE" })
     @ParameterizedTest(name = "[{index}] {arguments}")

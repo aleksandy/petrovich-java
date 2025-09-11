@@ -9,9 +9,9 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.*;
 
-import com.github.aleksandy.petrovich.rules.data.Rule;
-import com.github.aleksandy.petrovich.rules.data.RuleSet;
-import com.github.aleksandy.petrovich.rules.data.Rules;
+import com.github.aleksandy.petrovich.rules.Rule;
+import com.github.aleksandy.petrovich.rules.RuleSet;
+import com.github.aleksandy.petrovich.rules.Rules;
 
 class CaseInflection {
 

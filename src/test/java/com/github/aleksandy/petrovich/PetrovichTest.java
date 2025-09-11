@@ -1,14 +1,14 @@
 package com.github.aleksandy.petrovich;
 
 import com.github.aleksandy.petrovich.Petrovich.Names;
-import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
+import com.github.aleksandy.petrovich.rules.yaml.YamlRules;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PetrovichTest {
 
-    Petrovich petrovich = new Petrovich(new YamlRulesLoader().getRules());
+    Petrovich petrovich = new Petrovich(new YamlRules());
 
     @Test void test() {
         assertThat(this.petrovich.inflectTo(
