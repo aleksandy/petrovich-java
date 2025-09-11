@@ -9,32 +9,32 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.*;
 
-import com.github.aleksandy.petrovich.rules.RulesProvider;
 import com.github.aleksandy.petrovich.rules.data.Rule;
 import com.github.aleksandy.petrovich.rules.data.RuleSet;
+import com.github.aleksandy.petrovich.rules.data.Rules;
 
 class CaseInflection {
 
     private static final Locale RUSSIA = Locale.forLanguageTag("ru-RU");
 
-    private final RulesProvider provider;
+    private final Rules rules;
     private final Gender gender;
 
-    CaseInflection(RulesProvider provider, Gender gender) {
-        this.provider = provider;
+    CaseInflection(Rules rules, Gender gender) {
+        this.rules = rules;
         this.gender = gender;
     }
 
     String inflectFirstNameTo(String firstName, Case $case) {
-        return inflectTo(firstName, $case, this.provider.getRules().getFirstName());
+        return inflectTo(firstName, $case, this.rules.firstName());
     }
 
     String inflectLastNameTo(String lastName, Case $case) {
-        return inflectTo(lastName, $case, this.provider.getRules().getLastName());
+        return inflectTo(lastName, $case, this.rules.lastName());
     }
 
     String inflectMiddleNameTo(String middleName, Case $case) {
-        return inflectTo(middleName, $case, this.provider.getRules().getMiddleName());
+        return inflectTo(middleName, $case, this.rules.middleName());
     }
 
     private String inflectTo(String name, Case $case, RuleSet ruleSet) {
@@ -107,19 +107,19 @@ class CaseInflection {
         return switch ($case) {
             case NOMINATIVE -> ".";
             case GENITIVE, DATIVE, ACCUSATIVE, INSTRUMENTAL, PREPOSITIONAL ->
-                rule.getModSuffixes().get($case.getSuffixesIndex());
+                rule.modSuffixes().get($case.getSuffixesIndex());
         };
     }
 
     private Rule findFor(String name, RuleSet ruleSet, Set<String> tags) {
-        if (!ruleSet.getExceptions().isEmpty()) {
-            var result = find(name, ruleSet.getExceptions(), true, tags);
+        if (!ruleSet.exceptions().isEmpty()) {
+            var result = find(name, ruleSet.exceptions(), true, tags);
             if (result != null) {
                 return result;
             }
         }
 
-        var result = find(name, ruleSet.getSuffixes(), false, tags);
+        var result = find(name, ruleSet.suffixes(), false, tags);
         if (result == null) {
             throw new PetrovichException(format("Inflection rule '%s' has not been found.", name));
         }
@@ -145,14 +145,14 @@ class CaseInflection {
                 if (cmp != 0) {
                     return cmp;
                 }
-                if (x.rule.getGender() != CaseInflection.this.gender) {
+                if (x.rule.gender() != CaseInflection.this.gender) {
                     return 1;
                 }
-                if (y.rule.getGender() != CaseInflection.this.gender) {
+                if (y.rule.gender() != CaseInflection.this.gender) {
                     return -1;
                 }
-                String xFirstSuffix = x.rule.getTestSuffixes().getFirst();
-                String yFirstSuffix = y.rule.getTestSuffixes().getFirst();
+                String xFirstSuffix = x.rule.testSuffixes().getFirst();
+                String yFirstSuffix = y.rule.testSuffixes().getFirst();
 
                 cmp = Integer.compare(yFirstSuffix.length(), xFirstSuffix.length());
                 if (cmp != 0) {
@@ -166,9 +166,9 @@ class CaseInflection {
     }
 
     private String matchRule(String loweredName, Rule rule, Set<String> tags, boolean matchWholeWord) {
-        Gender ruleGender = rule.getGender();
+        Gender ruleGender = rule.gender();
         if (
-            !tagsAllow(tags, rule.getTags())
+            !tagsAllow(tags, rule.tags())
             || (
                 // if any of values of gender is "androgynous" then rule can be matched
                 (ruleGender == MALE && this.gender == FEMALE)
@@ -179,14 +179,14 @@ class CaseInflection {
         }
 
         if (matchWholeWord) {
-            for (String chars : rule.getTestSuffixes()) {
+            for (String chars : rule.testSuffixes()) {
                 if (loweredName.equals(chars)) {
                     return chars;
                 }
             }
         } else {
             int loweredNameLength = loweredName.length();
-            for (String chars : rule.getTestSuffixes()) {
+            for (String chars : rule.testSuffixes()) {
                 String test = loweredName.substring(
                     max(0, loweredNameLength - chars.length())
                 );

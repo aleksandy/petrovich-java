@@ -2,27 +2,17 @@ package com.github.aleksandy.petrovich;
 
 import static java.util.Objects.*;
 
-import com.github.aleksandy.petrovich.rules.RulesProvider;
-import com.github.aleksandy.petrovich.rules.loader.RulesLoader;
-import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
+import com.github.aleksandy.petrovich.rules.data.Rules;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
 public class Petrovich {
 
-    private final RulesProvider provider;
+    private final Rules rules;
 
-    public Petrovich() {
-        this(null);
-    }
-
-    public Petrovich(RulesLoader loader) {
-        this.provider = new RulesProvider(
-            loader == null
-                ? new YamlRulesLoader()
-                : loader
-        );
+    public Petrovich(Rules rules) {
+        this.rules = requireNonNull(rules, "Rules must not be null.");
     }
 
     public Names inflectTo(Names names, Case $case) {
@@ -31,7 +21,7 @@ public class Petrovich {
                 ? Gender.detect(names.middleName)
                 : names.gender;
 
-        CaseInflection inflection = new CaseInflection(this.provider, gender);
+        CaseInflection inflection = new CaseInflection(this.rules, gender);
 
         return new Names(
             inflection.inflectLastNameTo(names.lastName, $case),

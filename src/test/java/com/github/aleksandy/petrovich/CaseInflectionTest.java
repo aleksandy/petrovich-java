@@ -12,41 +12,28 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 
-import com.github.aleksandy.petrovich.rules.RulesProvider;
+import com.github.aleksandy.petrovich.rules.data.Rules;
 import com.github.aleksandy.petrovich.rules.loader.YamlRulesLoader;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class CaseInflectionTest {
 
     private static final int COUNT_CASES = Case.values().length;
 
-    private final RulesProvider provider = new RulesProvider(new YamlRulesLoader());
+    private final Rules rules = new YamlRulesLoader().getRules();
 
-    @Test void maleNames() throws Exception {
-        testNames(MALE);
-    }
-
-    @Test void femaleNames() throws Exception {
-        testNames(FEMALE);
-    }
-
-    void testNames(Gender gender) throws Exception {
-        CaseInflection inflection = new CaseInflection(this.provider, gender);
-        String resourceName = String.format(
-            "/%s.names.expected",
-            gender.name().toLowerCase(Locale.ROOT)
-        );
-        try (
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(
-                    getClass().getResourceAsStream(resourceName),
-                    UTF_8
-                )
-            )
-        ) {
+    @EnumSource(value = Gender.class, names = { "MALE", "FEMALE" })
+    @ParameterizedTest(name = "[{index}] {arguments}")
+    void maleNames(Gender gender) throws Exception {
+        CaseInflection inflection = new CaseInflection(this.rules, gender);
+        String resourceName = String.format("/%s.names.expected", gender.name().toLowerCase(Locale.ROOT));
+        try (BufferedReader in = new BufferedReader(
+            new InputStreamReader(getClass().getResourceAsStream(resourceName), UTF_8)
+        )) {
             String name;
             int pos = 1;
             while ((name = in.readLine()) != null) {
@@ -54,6 +41,7 @@ class CaseInflectionTest {
                 assertThat(expected)
                     .as(name)
                     .hasSize(COUNT_CASES);
+
                 String firstName = expected[0];
                 testName(expected[1], firstName, GENITIVE, inflection, pos);
                 testName(expected[2], firstName, DATIVE, inflection, pos);
@@ -73,7 +61,7 @@ class CaseInflectionTest {
     }
 
     @Test void inflectToMethodsShouldThrowNullPointerExceptionWhenNameIsNull() {
-        var inflection = new CaseInflection(this.provider, MALE);
+        var inflection = new CaseInflection(this.rules, MALE);
         List<BiConsumer<String, Case>> inflects = List.of(
             inflection::inflectLastNameTo, inflection::inflectFirstNameTo, inflection::inflectMiddleNameTo
         );
@@ -94,7 +82,7 @@ class CaseInflectionTest {
     @ValueSource(strings = { "", "1-2-3", "-----"})
     @ParameterizedTest(name = "[{index}] {arguments}")
     void inflectToMethodsShouldThrowExceptionWhenInflectionRuleNotFound(String name) {
-        CaseInflection inflection = new CaseInflection(this.provider, MALE);
+        CaseInflection inflection = new CaseInflection(this.rules, MALE);
         List<BiConsumer<String, Case>> inflects = List.of(
             inflection::inflectLastNameTo, inflection::inflectFirstNameTo, inflection::inflectMiddleNameTo
         );

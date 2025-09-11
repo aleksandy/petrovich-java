@@ -11,14 +11,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class YamlRulesLoaderTest {
 
     @Test void testLoad() {
-        assertThat(new YamlRulesLoader().load())
+        assertThat(new YamlRulesLoader().getRules())
             .isNotNull()
-            .extracting(Rules::getFirstName, Rules::getLastName, Rules::getMiddleName)
+            .extracting(Rules::firstName, Rules::lastName, Rules::middleName)
             .asInstanceOf(InstanceOfAssertFactories.list(RuleSet.class))
             .allSatisfy(ruleSet ->
                 assertThat(ruleSet)
                     .isNotNull()
-                    .extracting(RuleSet::getExceptions, RuleSet::getSuffixes)
+                    .extracting(RuleSet::exceptions, RuleSet::suffixes)
                     .doesNotContainNull()
             );
     }
