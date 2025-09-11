@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -9,8 +10,8 @@
 
   <groupId>com.github.aleksandy</groupId>
   <artifactId>petrovich</artifactId>
-  <version>1.2.2-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <version>2.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <name>petrovich-java</name>
   <description>
@@ -38,9 +39,14 @@
     <developer>
       <id>owner</id>
       <name>Andrey Alekseenko</name>
-      <email>aleksandy@pisem.net</email>
+      <email>skelandy@gmail.com</email>
     </developer>
   </developers>
+
+  <modules>
+    <module>petrovich-engine</module>
+    <module>petrovich-rules-yaml</module>
+  </modules>
 
   <properties>
     <!-- common project properties -->
@@ -183,26 +189,40 @@
     </plugins>
   </build>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
+  <dependencyManagement>
+    <dependencies>
+      <!-- project modules -->
+      <dependency>
+        <groupId>com.github.aleksandy</groupId>
+        <artifactId>petrovich-engine</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.aleksandy</groupId>
+        <artifactId>petrovich-rules-yaml</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-    <!-- Test dependency -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>${assertj.version}</version>
-    </dependency>
-  </dependencies>
+      <!-- external dependencies -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <!-- test dependencies -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <profiles>
     <profile>
