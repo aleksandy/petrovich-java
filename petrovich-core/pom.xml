@@ -19,7 +19,12 @@
       <groupId>com.github.aleksandy</groupId>
       <artifactId>petrovich-rules</artifactId>
     </dependency>
-    <!-- Test dependency -->
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>com.github.aleksandy</groupId>
+      <artifactId>petrovich-rules-yaml</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>

@@ -1,205 +1,185 @@
 package com.github.aleksandy.petrovich;
 
-import static com.github.aleksandy.petrovich.rules.Gender.*;
-import static java.lang.String.*;
+import static com.github.aleksandy.petrovich.rules.Gender.ANDROGYNOUS;
+import static com.github.aleksandy.petrovich.rules.Gender.FEMALE;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
-import static java.lang.Math.*;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
 
 import com.github.aleksandy.petrovich.rules.Gender;
 import com.github.aleksandy.petrovich.rules.Rule;
 import com.github.aleksandy.petrovich.rules.RuleSet;
 import com.github.aleksandy.petrovich.rules.Rules;
 
+/**
+ * Склонение частей имени по правилам (порт руби-реализации).
+ *
+ * <p>Правила перебираются в порядке загрузки: первое подходящее правило
+ * выигрывает (как {@code @case_rules.find} в ruby). Сначала проверяются
+ * исключения, затем суффиксы. Если правило не найдено, часть имени
+ * возвращается без изменений.
+ */
 class CaseInflection {
 
     private static final Locale RUSSIA = Locale.forLanguageTag("ru-RU");
 
     private final Rules rules;
     private final Gender gender;
+    private final boolean knownGender;
 
     CaseInflection(Rules rules, Gender gender) {
-        this.rules = rules;
+        this(rules, gender, false);
+    }
+
+    CaseInflection(Rules rules, Gender gender, boolean knownGender) {
+        this.rules = requireNonNull(rules, "Rules must not be null.");
         this.gender = gender;
+        this.knownGender = knownGender;
     }
 
-    String inflectFirstNameTo(String firstName, Case $case) {
-        return inflectTo(firstName, $case, this.rules.firstName());
+    String inflectFirstNameTo(String firstName, Case inflectionCase) {
+        return inflectTo(firstName, inflectionCase, this.rules.firstName());
     }
 
-    String inflectLastNameTo(String lastName, Case $case) {
-        return inflectTo(lastName, $case, this.rules.lastName());
+    String inflectLastNameTo(String lastName, Case inflectionCase) {
+        return inflectTo(lastName, inflectionCase, this.rules.lastName());
     }
 
-    String inflectMiddleNameTo(String middleName, Case $case) {
-        return inflectTo(middleName, $case, this.rules.middleName());
+    String inflectMiddleNameTo(String middleName, Case inflectionCase) {
+        return inflectTo(middleName, inflectionCase, this.rules.middleName());
     }
 
-    private String inflectTo(String name, Case $case, RuleSet ruleSet) {
-        name = requireNonNull(name, "Name must not be null.");
-        String[] chunks = normalizeName(name).split("-");
-        int chunksLength = chunks.length;
-        String[] result = new String[chunksLength];
-        for (int idx = 0; idx < chunksLength; idx++) {
-            Set<String> tags = idx == 0 && chunksLength > 1 ? Set.of("first_word") : Set.of();
-            Rule rule = findFor(name, ruleSet, tags);
-            result[idx] = apply(name, rule, $case);
+    private String inflectTo(String name, Case inflectionCase, RuleSet ruleSet) {
+        if (name == null || (name = name.strip()).isEmpty()) {
+            throw new PetrovichException("Name must not be blank.");
         }
 
-        StringBuilder sb = new StringBuilder(name.length() + 10);
-        for (String res : result) {
-            sb.append(res).append('-');
+        String[] chunks = name.split("-");
+        if (chunks.length == 0) {
+            return name;
         }
-        int length = sb.length();
-        if (length > 0) {
-            sb.setLength(length - 1);
+
+        for (int idx = 0; idx < chunks.length; idx++) {
+            // Строгий режим по полу применяется только к последней части
+            // составного имени — как в ruby (find_all_case_rules).
+            boolean knownGenderChunk = this.knownGender && idx == chunks.length - 1;
+            Rule rule = findFor(chunks[idx], ruleSet, knownGenderChunk);
+            if (rule != null) {
+                chunks[idx] = apply(chunks[idx], rule, inflectionCase);
+            }
         }
-        String stringResult = sb.toString();
-        return stringResult.isEmpty() ? name : stringResult;
+
+        return String.join("-", chunks);
     }
 
-    static String normalizeName(String name) {
-        int length = name.length();
-        int start = 0;
-        int stop = length - 1;
-        while (start < length && name.charAt(start) == '-') {
-            start++;
-        }
-        while (start < stop && name.charAt(stop) == '-') {
-            stop--;
-        }
-        return start == length ? "" : name.substring(start, stop + 1);
-    }
-
-    private String apply(String name, Rule rule, Case $case) {
+    private String apply(String name, Rule rule, Case inflectionCase) {
         StringBuilder result = new StringBuilder(name.length() + 5).append(name);
 
-        CharacterIterator itr = new StringCharacterIterator(
-            modificatorFor($case, rule)
-        );
-        char $char = itr.current();
-        while ($char != CharacterIterator.DONE) {
+        CharacterIterator itr = new StringCharacterIterator(modificatorFor(inflectionCase, rule));
+
+        for (char $char = itr.current(); $char != CharacterIterator.DONE; $char = itr.next()) {
             switch ($char) {
-                case '.' :
-                    break;
-                case '-' :
+                case '.' -> {
+                    // пропускаем символ
+                }
+                case '-' -> {
                     if (result.isEmpty()) {
-                        throw new PetrovichException(format("Can't apply rule for '%s' case %s", name, $case));
+                        throw new PetrovichException(
+                            format("Can't apply rule for '%s' case %s", name, inflectionCase)
+                        );
                     }
                     result.setLength(result.length() - 1);
-                    break;
-                default:
-                    result.append($char);
+                }
+                default -> result.append($char);
             }
-            $char = itr.next();
         }
 
         return result.toString();
     }
 
-    private String modificatorFor(Case $case, Rule rule) {
-        return switch ($case) {
+    private String modificatorFor(Case inflectionCase, Rule rule) {
+        return switch (inflectionCase) {
             case NOMINATIVE -> ".";
             case GENITIVE, DATIVE, ACCUSATIVE, INSTRUMENTAL, PREPOSITIONAL ->
-                rule.modSuffixes().get($case.getSuffixesIndex());
+                rule.modSuffixes().get(inflectionCase.getSuffixesIndex());
         };
     }
 
-    private Rule findFor(String name, RuleSet ruleSet, Set<String> tags) {
-        if (!ruleSet.exceptions().isEmpty()) {
-            var result = find(name, ruleSet.exceptions(), true, tags);
-            if (result != null) {
-                return result;
+    /**
+     * Ищет правило для части имени.
+     *
+     * <p>Порядок как в ruby: при явно заданном поле сначала ищем правило,
+     * совпадающее по полу; если такого нет — повторяем поиск в мягком режиме
+     * (androgynous). Теги правил при матчинге не учитываются.
+     */
+    private Rule findFor(String name, RuleSet ruleSet, boolean knownGenderChunk) {
+        Rule rule = find(name, ruleSet.exceptions(), true, this.gender, knownGenderChunk);
+        if (rule == null) {
+            rule = find(name, ruleSet.suffixes(), false, this.gender, knownGenderChunk);
+        }
+
+        if (rule == null && knownGenderChunk) {
+            // Fallback на androgynous, как в ruby find_case_rule.
+            rule = find(name, ruleSet.exceptions(), true, ANDROGYNOUS, false);
+            if (rule == null) {
+                rule = find(name, ruleSet.suffixes(), false, ANDROGYNOUS, false);
             }
         }
 
-        var result = find(name, ruleSet.suffixes(), false, tags);
-        if (result == null) {
-            throw new PetrovichException(format("Inflection rule '%s' has not been found.", name));
-        }
-
-        return result;
+        return rule;
     }
 
     private Rule find(
         String name,
         List<Rule> rules,
-        final boolean matchWholeWord,
-        final Set<String> tags
+        boolean matchWholeWord,
+        Gender matchGender,
+        boolean strictGender
     ) {
         String loweredName = name.toLowerCase(RUSSIA);
         return rules.stream()
-            .map(rule -> {
-                String chars = matchRule(loweredName, rule, tags, matchWholeWord);
-                return chars != null ? new CharRuleTuple(chars, rule) : null;
-            })
-            .filter(Objects::nonNull)
-            .min((x, y) -> {
-                int cmp = Integer.compare(y.chars.length(), x.chars.length());
-                if (cmp != 0) {
-                    return cmp;
-                }
-                if (x.rule.gender() != CaseInflection.this.gender) {
-                    return 1;
-                }
-                if (y.rule.gender() != CaseInflection.this.gender) {
-                    return -1;
-                }
-                String xFirstSuffix = x.rule.testSuffixes().getFirst();
-                String yFirstSuffix = y.rule.testSuffixes().getFirst();
-
-                cmp = Integer.compare(yFirstSuffix.length(), xFirstSuffix.length());
-                if (cmp != 0) {
-                    return cmp;
-                }
-
-                return xFirstSuffix.compareTo(yFirstSuffix);
-            })
-            .map(CharRuleTuple::rule)
+            .filter(rule -> genderMatches(rule.gender(), matchGender, strictGender))
+            .filter(rule -> nameMatches(loweredName, rule, matchWholeWord))
+            .findFirst()
             .orElse(null);
     }
 
-    private String matchRule(String loweredName, Rule rule, Set<String> tags, boolean matchWholeWord) {
-        Gender ruleGender = rule.gender();
-        if (
-            !tagsAllow(tags, rule.tags())
-            || (
-                // if any of values of gender is "androgynous" then rule can be matched
-                (ruleGender == MALE && this.gender == FEMALE)
-                || (ruleGender == FEMALE && this.gender != FEMALE)
-            )
-        ) {
-            return null;
+    /**
+     * Проверяет, подходит ли правило по полу.
+     *
+     * <p>В строгом режиме пол правила должен совпасть с заданным. В мягком
+     * режиме женские правила подходят только для женского пола, а мужские и
+     * андрогинные — для всех остальных (включая неопределённый пол).
+     */
+    private static boolean genderMatches(
+        Gender ruleGender,
+        Gender matchGender,
+        boolean strictGender
+    ) {
+        if (strictGender) {
+            return ruleGender == matchGender;
         }
 
-        if (matchWholeWord) {
-            for (String chars : rule.testSuffixes()) {
-                if (loweredName.equals(chars)) {
-                    return chars;
-                }
-            }
-        } else {
-            int loweredNameLength = loweredName.length();
-            for (String chars : rule.testSuffixes()) {
-                String test = loweredName.substring(
-                    max(0, loweredNameLength - chars.length())
-                );
-                if (test.equals(chars)) {
-                    return chars;
-                }
+        boolean femaleRule = ruleGender == FEMALE;
+        boolean femaleName = matchGender == FEMALE;
+        return femaleRule == femaleName;
+    }
+
+    private static boolean nameMatches(String loweredName, Rule rule, boolean matchWholeWord) {
+        for (String suffix : rule.testSuffixes()) {
+            String loweredSuffix = suffix.toLowerCase(RUSSIA);
+            if (matchWholeWord
+                ? loweredName.equals(loweredSuffix)
+                : loweredName.endsWith(loweredSuffix)) {
+                return true;
             }
         }
-        return null;
+
+        return false;
     }
 
-    private boolean tagsAllow(Set<String> tags, Set<String> ruleTags) {
-        Set<String> result = new HashSet<>(ruleTags);
-        result.removeAll(tags);
-        return result.isEmpty();
-    }
-
-    private record CharRuleTuple(String chars, Rule rule) {}
 }
