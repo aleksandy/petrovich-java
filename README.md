@@ -9,7 +9,8 @@ Java-библиотека для склонения русских фамили�
 | Модуль | Назначение |
 |---|---|
 | `petrovich-core` | склонение (`Petrovich`, `Names`, `Case`) и определение пола |
-| `petrovich-rules` | API правил (`Rules`, `Rule`, `RuleSet`, `GenderRules`) |
+| `petrovich-rules` | агрегатор модулей правил |
+| `petrovich-rules-api` | API правил (`Rules`, `Rule`, `RuleSet`, `GenderRules`) |
 | `petrovich-rules-yaml` | загрузка правил из `rules.yml` / `gender.yml` (`YamlRules`) |
 | `petrovich-parity-tests` | сквозные тесты, портированные из petrovich-ruby; не публикуется |
 
@@ -35,7 +36,7 @@ Java-библиотека для склонения русских фамили�
 </dependency>
 ```
 
-`petrovich-core` транзитивно подтягивает `petrovich-rules`.
+`petrovich-core` транзитивно подтягивает `petrovich-rules-api`.
 
 ## Использование
 

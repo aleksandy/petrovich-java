@@ -46,7 +46,6 @@
   <modules>
     <module>petrovich-core</module>
     <module>petrovich-rules</module>
-    <module>petrovich-rules-yaml</module>
     <module>petrovich-parity-tests</module>
   </modules>
 
@@ -199,7 +198,7 @@
       </dependency>
       <dependency>
         <groupId>com.github.aleksandy</groupId>
-        <artifactId>petrovich-rules</artifactId>
+        <artifactId>petrovich-rules-api</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

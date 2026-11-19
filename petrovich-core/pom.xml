@@ -17,7 +17,7 @@
   <dependencies>
     <dependency>
       <groupId>com.github.aleksandy</groupId>
-      <artifactId>petrovich-rules</artifactId>
+      <artifactId>petrovich-rules-api</artifactId>
     </dependency>
     <!-- Test dependencies -->
     <dependency>
