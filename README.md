@@ -13,6 +13,10 @@ Java-библиотека для склонения русских фамили�
 | `petrovich-rules-yaml` | загрузка правил из `rules.yml` / `gender.yml` (`YamlRules`) |
 | `petrovich-parity-tests` | сквозные тесты, портированные из petrovich-ruby; не публикуется |
 
+Модули поставляются с дескрипторами JPMS: `com.github.aleksandy.petrovich`,
+`com.github.aleksandy.petrovich.rules` и
+`com.github.aleksandy.petrovich.rules.yaml`.
+
 ## Maven dependency
 
 Для работы нужны `petrovich-core` (сам движок) и `petrovich-rules-yaml`
