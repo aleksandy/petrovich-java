@@ -70,13 +70,15 @@ class YamlRulesTest {
     }
 
     @Test void shouldValidateResourcesEagerlyButParseLazily() {
-        // Ресурс существует, поэтому конструктор проходит; некорректный YAML
-        // разбирается только при первом обращении к правилам.
+        // Ресурс существует, поэтому конструктор проходит; некорректные правила
+        // разбираются и валидируются только при первом обращении к ним.
         YamlRules rules = new YamlRules("invalid-rule-test.yml");
 
         assertThatThrownBy(rules::firstName)
             .isInstanceOf(UncheckedIOException.class)
-            .hasCauseInstanceOf(JsonMappingException.class);
+            .hasCauseInstanceOf(JsonMappingException.class)
+            .cause()
+            .hasMessageContaining("Rule test suffixes must not be empty");
     }
 
     @Test void shouldFailOnInvalidGenderValue() {
