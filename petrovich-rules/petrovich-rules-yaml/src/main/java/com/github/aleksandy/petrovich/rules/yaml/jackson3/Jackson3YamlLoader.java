@@ -1,4 +1,4 @@
-package com.github.aleksandy.petrovich.rules.yaml;
+package com.github.aleksandy.petrovich.rules.yaml.jackson3;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
@@ -13,39 +13,43 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.KeyDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.aleksandy.petrovich.rules.Gender;
 import com.github.aleksandy.petrovich.rules.Rule;
+import com.github.aleksandy.petrovich.rules.yaml.YamlLoader;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.KeyDeserializer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /**
- * Загрузчик моделей правил на Jackson 2.
+ * Загрузчик моделей правил на Jackson 3.
  *
  * <p>Содержит всё, что нужно для чтения YAML именно этой библиотекой:
  * маппер, настройку имён свойств и десериализаторы {@link Gender}.
  */
-final class JacksonYamlLoader extends YamlLoader {
+public final class Jackson3YamlLoader extends YamlLoader {
 
-    private static final String MODULE_NAME = "petrovich-rules-yaml";
+    private static final String MODULE_NAME = "petrovich-rules-yaml-jackson3";
 
     private static final Map<String, Gender> GENDER_VALUES = Stream.of(Gender.values())
         .collect(toUnmodifiableMap(v -> v.name().toLowerCase(Locale.ROOT), Function.identity()));
 
     private final ObjectMapper mapper;
 
-
-    JacksonYamlLoader(URL rules, URL gender) {
+    /**
+     * Создаёт загрузчик для указанных ресурсов.
+     *
+     * @param rules ресурс с правилами склонения
+     * @param gender ресурс с правилами определения пола
+     */
+    public Jackson3YamlLoader(URL rules, URL gender) {
         super(rules, gender);
 
-        this.mapper = JsonMapper.builder(new YAMLFactory())
+        this.mapper = YAMLMapper.builder()
             .propertyNamingStrategy(PropertyNamingStrategies.LOWER_CASE)
             .addMixIn(Rule.class, RuleMixIn.class)
             .addModule(
@@ -57,7 +61,7 @@ final class JacksonYamlLoader extends YamlLoader {
     }
 
     @Override
-    <T> T load(URL resource, Class<T> type) {
+    protected <T> T load(URL resource, Class<T> type) {
         try (InputStream stream = resource.openStream()) {
             return this.mapper.readValue(stream, type);
         } catch (IOException e) {
@@ -79,7 +83,10 @@ final class JacksonYamlLoader extends YamlLoader {
 
     }
 
-    private static Gender deserializeGenderValue(String value, DeserializationContext context) throws JsonMappingException {
+    private static Gender deserializeGenderValue(
+        String value,
+        DeserializationContext context
+    ) {
         var result = GENDER_VALUES.get(value);
         if (result != null) {
             return result;
@@ -100,15 +107,17 @@ final class JacksonYamlLoader extends YamlLoader {
             super(Gender.class);
         }
 
-        @Override public Gender deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
-            return deserializeGenderValue(jsonParser.getText(), context);
+        @Override
+        public Gender deserialize(JsonParser jsonParser, DeserializationContext context) {
+            return deserializeGenderValue(jsonParser.getString(), context);
         }
 
     }
 
     private static final class GenderKeyDeserializer extends KeyDeserializer {
 
-        @Override public Object deserializeKey(String key, DeserializationContext context) throws JsonMappingException {
+        @Override
+        public Object deserializeKey(String key, DeserializationContext context) {
             return deserializeGenderValue(key, context);
         }
 

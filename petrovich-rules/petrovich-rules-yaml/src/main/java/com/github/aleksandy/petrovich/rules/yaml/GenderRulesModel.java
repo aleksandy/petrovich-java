@@ -22,7 +22,7 @@ import com.github.aleksandy.petrovich.rules.GenderRules;
  * @param gender правила по частям имени; ключ — {@code lastname},
  *               {@code firstname} или {@code middlename}
  */
-record GenderRulesModel(Map<String, GenderPartModel> gender) implements GenderRules {
+public record GenderRulesModel(Map<String, GenderPartModel> gender) implements GenderRules {
 
     @Override
     public GenderRuleSet lastName() {
@@ -54,7 +54,10 @@ record GenderRulesModel(Map<String, GenderPartModel> gender) implements GenderRu
      * @param exceptions исключения по целым словам, сгруппированные по полу
      * @param suffixes суффиксные правила, сгруппированные по полу
      */
-    record GenderPartModel(Map<Gender, List<String>> exceptions, Map<Gender, List<String>> suffixes) {
+    public record GenderPartModel(
+        Map<Gender, List<String>> exceptions,
+        Map<Gender, List<String>> suffixes
+    ) {
 
         GenderRuleSet toGenderRuleSet() {
             Map<String, GenderRule> exceptionRules = new HashMap<>();
@@ -65,9 +68,13 @@ record GenderRulesModel(Map<String, GenderPartModel> gender) implements GenderRu
             );
 
             List<GenderRule> suffixRules = new ArrayList<>();
-            forEach(this.suffixes, (gender, suffixes) ->
-                suffixes.forEach(suffix -> suffixRules.add(new GenderRule(gender, suffix)))
-            );
+            for (Gender gender : Gender.values()) {
+                List<String> suffixes = this.suffixes == null ? null : this.suffixes.get(gender);
+
+                if (suffixes != null) {
+                    suffixes.forEach(suffix -> suffixRules.add(new GenderRule(gender, suffix)));
+                }
+            }
 
             return new GenderRuleSet(exceptionRules, suffixRules);
         }

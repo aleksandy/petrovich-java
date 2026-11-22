@@ -11,5 +11,5 @@ import com.github.aleksandy.petrovich.rules.RuleSet;
  * @param firstName правила для имён
  * @param middleName правила для отчеств
  */
-record RulesModel(RuleSet lastName, RuleSet firstName, RuleSet middleName) {
+public record RulesModel(RuleSet lastName, RuleSet firstName, RuleSet middleName) {
 }

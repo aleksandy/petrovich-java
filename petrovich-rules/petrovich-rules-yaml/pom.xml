@@ -13,20 +13,47 @@
   </parent>
 
   <artifactId>petrovich-rules-yaml</artifactId>
-  <name>petrovich-java rules YAML loader (Jackson 2)</name>
+  <name>petrovich-java rules YAML loaders (Jackson 2, Jackson 3, SnakeYAML, SnakeYAML Engine)</name>
 
   <dependencies>
     <dependency>
       <groupId>com.github.aleksandy</groupId>
       <artifactId>petrovich-rules-api</artifactId>
     </dependency>
+
+    <!-- Jackson annotations are shared between Jackson 2 and Jackson 3 (optional) -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
+      <optional>true</optional>
     </dependency>
+
+    <!-- Jackson 2 (optional) -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jackson 3 (optional; annotations are shared with Jackson 2) -->
+    <dependency>
+      <groupId>tools.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- SnakeYAML (optional) -->
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- SnakeYAML Engine (optional; used by Jackson 3 as its YAML backend) -->
+    <dependency>
+      <groupId>org.snakeyaml</groupId>
+      <artifactId>snakeyaml-engine</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <!-- Test dependency -->

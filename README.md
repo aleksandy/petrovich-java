@@ -11,17 +11,22 @@ Java-библиотека для склонения русских фамили�
 | `petrovich-core` | склонение (`Petrovich`, `Names`, `Case`) и определение пола |
 | `petrovich-rules` | агрегатор модулей правил |
 | `petrovich-rules-api` | API правил (`Rules`, `Rule`, `RuleSet`, `GenderRules`) |
-| `petrovich-rules-yaml` | загрузка правил из `rules.yml` / `gender.yml` (`YamlRules`) |
-| `petrovich-parity-tests` | сквозные тесты, портированные из petrovich-ruby; не публикуется |
+| `petrovich-rules-yaml` | загрузка правил из `rules.yml` / `gender.yml` (`YamlRules`); реализации на Jackson 2, Jackson 3, SnakeYAML и SnakeYAML Engine |
+| `petrovich-parity-tests` | сквозные тесты, портированные из petrovich-ruby, и тесты паритета загрузчиков YAML; не публикуется |
 
 Модули поставляются с дескрипторами JPMS: `com.github.aleksandy.petrovich`,
 `com.github.aleksandy.petrovich.rules` и
-`com.github.aleksandy.petrovich.rules.yaml`.
+`com.github.aleksandy.petrovich.rules.yaml`. Последний экспортирует подпакеты
+с реализациями разбора YAML (`jackson2`, `jackson3`, `snakeyaml`, `snakeyamlengine`).
 
 ## Maven dependency
 
-Для работы нужны `petrovich-core` (сам движок) и `petrovich-rules-yaml`
-(встроенные правила в classpath):
+Для работы нужны `petrovich-core` (сам движок), `petrovich-rules-yaml`
+(встроенные правила в classpath) и хотя бы одна из библиотек разбора YAML.
+`petrovich-rules-yaml` объявляет все четыре библиотеки опциональными,
+поэтому выбранную нужно подключить явно. Если подключено несколько,
+загрузчик выбирается автоматически по приоритету: Jackson 3, SnakeYAML Engine,
+Jackson 2, SnakeYAML. Например, для Jackson 2:
 
 ```xml
 <dependency>
@@ -33,6 +38,11 @@ Java-библиотека для склонения русских фамили�
   <groupId>com.github.aleksandy</groupId>
   <artifactId>petrovich-rules-yaml</artifactId>
   <version>${petrovich.version}</version>
+</dependency>
+<dependency>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-yaml</artifactId>
+  <version>2.23.0</version>
 </dependency>
 ```
 
@@ -77,8 +87,8 @@ new YamlRules("/custom-rules.yml");                  // ведущий '/' то�
 `/` допускается и просто отбрасывается. Наличие обоих ресурсов проверяется
 сразу в конструкторе (fail-fast), а содержимое читается лениво при первом
 обращении к соответствующей группе правил. Если ресурс не найден,
-выбрасывается `IllegalStateException`; если YAML некорректен —
-`UncheckedIOException` с исходной причиной.
+выбрасывается `IllegalStateException`; если YAML некорректен, тип исключения
+зависит от выбранного загрузчика.
 
 Загрузить оба набора правил заранее можно явным вызовом:
 
@@ -86,6 +96,46 @@ new YamlRules("/custom-rules.yml");                  // ведущий '/' то�
 YamlRules rules = new YamlRules();
 rules.load(); // разбирает rules.yml и gender.yml сразу
 ```
+
+## Реализации разбора YAML
+
+Модуль `petrovich-rules-yaml` содержит четыре независимые реализации:
+
+| Пакет | Библиотека | Зависимость |
+|---|---|---|
+| `...rules.yaml.jackson2` | Jackson 2 | `com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.23.0` |
+| `...rules.yaml.jackson3` | Jackson 3 | `tools.jackson.dataformat:jackson-dataformat-yaml:3.3.0` |
+| `...rules.yaml.snakeyaml` | SnakeYAML | `org.yaml:snakeyaml:2.7` |
+| `...rules.yaml.snakeyamlengine` | SnakeYAML Engine | `org.snakeyaml:snakeyaml-engine:3.2` |
+
+Все четыре зависимости объявлены опциональными. Конструкторы `new YamlRules(...)`
+без явного загрузчика выбирают первую доступную библиотеку в порядке
+приоритета: **Jackson 3 → SnakeYAML Engine → Jackson 2 → SnakeYAML**.
+Если ни одна библиотека не найдена, выбрасывается `IllegalStateException`.
+Jackson 3 сам использует SnakeYAML Engine как бэкенд разбора YAML, поэтому
+там, где подключён Jackson 3, SnakeYAML Engine обычно уже есть транзитивно.
+
+Чтобы выбрать реализацию явно, передайте соответствующий загрузчик
+в публичный конструктор `YamlRules(YamlLoader)`:
+
+```java
+import java.net.URL;
+import com.github.aleksandy.petrovich.rules.yaml.YamlRules;
+import com.github.aleksandy.petrovich.rules.yaml.snakeyaml.SnakeYamlLoader;
+
+URL rules = ...;
+URL gender = ...;
+YamlRules yamlRules = new YamlRules(new SnakeYamlLoader(rules, gender));
+```
+
+Классы `Jackson2YamlLoader`, `Jackson3YamlLoader` и `SnakeYamlEngineLoader`
+используются аналогично. Логика ленивого кэширования и проверки ресурсов
+общая для всех реализаций.
+
+При использовании JPMS выбранная библиотека должна быть разрешена в графе
+модулей: добавьте её в `requires` своего `module-info.java` или запускайте
+приложение с `--add-modules`. Зависимости модуля объявлены как `requires static`,
+поэтому сами по себе они в граф модулей не попадают.
 
 ## Формат `rules.yml`
 
