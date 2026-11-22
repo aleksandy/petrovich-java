@@ -2,12 +2,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
-  </parent>
-
   <groupId>com.github.aleksandy</groupId>
   <artifactId>petrovich</artifactId>
   <version>2.0.0-SNAPSHOT</version>
@@ -24,7 +18,7 @@
   <licenses>
     <license>
       <name>MIT License</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <url>https://opensource.org/licenses/MIT</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -58,6 +52,10 @@
     <!-- common compiler properties -->
     <maven.compiler.release>${release.version}</maven.compiler.release>
 
+    <!-- release properties -->
+    <central.autoPublish>false</central.autoPublish>
+    <central.waitUntil>validated</central.waitUntil>
+
     <!-- plugins versions -->
     <maven-toolchains-plugin.version>3.3.0</maven-toolchains-plugin.version>
     <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
@@ -70,6 +68,7 @@
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-install-plugin.version>3.2.0</maven-install-plugin.version>
     <maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
+    <central-publishing-maven-plugin.version>0.12.0</central-publishing-maven-plugin.version>
 
     <!-- BOM versions -->
     <jackson.version>2.23.0</jackson.version>
@@ -139,6 +138,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven-deploy-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>${central-publishing-maven-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -267,7 +271,7 @@
 
   <profiles>
     <profile>
-      <id>sign-artifacts</id>
+      <id>release</id>
       <activation>
         <property>
           <name>performRelease</name>
@@ -280,7 +284,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <configuration>
-              <passphrase>${gpg.passphrase}</passphrase>
+              <bestPractices>true</bestPractices>
             </configuration>
             <executions>
               <execution>
@@ -291,6 +295,19 @@
                 </goals>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>${central.autoPublish}</autoPublish>
+              <waitUntil>${central.waitUntil}</waitUntil>
+              <excludeArtifacts>
+                <excludeArtifact>petrovich-parity-tests</excludeArtifact>
+              </excludeArtifacts>
+            </configuration>
           </plugin>
         </plugins>
       </build>

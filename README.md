@@ -202,3 +202,62 @@ gender:
 
 Тесты паритета с petrovich-ruby лежат в отдельном модуле `petrovich-parity-tests`
 и запускаются вместе с остальными.
+
+## Публикация в Maven Central
+
+Публикация идёт через Central Portal (`central-publishing-maven-plugin`) в
+профиле `release`. Профиль включается флагом `-DperformRelease=true` (или
+`-Prelease`) и дополнительно подписывает артефакты GPG.
+
+### Разовая настройка
+
+1. Зарегистрировать и подтвердить namespace `com.github.aleksandy` в
+   [Central Portal](https://central.sonatype.com/) (для `com.github.*` —
+   через привязку GitHub-аккаунта).
+2. Создать GPG-ключ и опубликовать публичную часть на keyserver
+   (`keys.openpgp.org`).
+3. Сгенерировать Portal token и прописать его в `~/.m2/settings.xml`:
+
+   ```xml
+   <settings>
+     <servers>
+       <server>
+         <id>central</id>
+         <username>TOKEN_USERNAME</username>
+         <password>TOKEN_PASSWORD</password>
+       </server>
+     </servers>
+   </settings>
+   ```
+
+### Локальный релиз
+
+```sh
+# 1. Выставить релизную версию (без -SNAPSHOT)
+./mvnw versions:set -DnewVersion=2.0.0
+
+# 2. Собрать, подписать и загрузить в Central Portal
+MAVEN_GPG_PASSPHRASE='...' ./mvnw -DperformRelease=true deploy
+
+# 3. Либо сразу опубликовать после валидации
+MAVEN_GPG_PASSPHRASE='...' ./mvnw -DperformRelease=true \
+  -Dcentral.autoPublish=true -Dcentral.waitUntil=published deploy
+```
+
+Без `central.autoPublish=true` бандл загружается в Portal, а публикацию нужно
+подтвердить вручную на странице Deployments. Парольная фраза GPG читается из
+`MAVEN_GPG_PASSPHRASE`; можно также использовать gpg-agent.
+
+### Релиз из GitHub Actions
+
+Workflow `release.yml` запускается по тегу `v*` (например, `v2.0.0`). Версия в
+`pom.xml` должна совпадать с тегом и не должна быть `-SNAPSHOT`. Нужны секреты:
+
+| Секрет | Назначение |
+|---|---|
+| `CENTRAL_USERNAME` | username Portal token |
+| `CENTRAL_PASSWORD` | password Portal token |
+| `GPG_PRIVATE_KEY` | приватный ключ в armored-формате |
+| `GPG_PASSPHRASE` | парольная фраза ключа |
+
+Модуль `petrovich-parity-tests` в публикацию не попадает.
