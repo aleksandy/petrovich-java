@@ -13,7 +13,11 @@
   </parent>
 
   <artifactId>petrovich-rules-yaml</artifactId>
-  <name>petrovich-java rules YAML loaders (Jackson 2, Jackson 3, SnakeYAML, SnakeYAML Engine)</name>
+  <name>petrovich-java rules YAML loaders</name>
+  <description>
+    Loads rules.yml and gender.yml through Jackson 2, Jackson 3, SnakeYAML or
+    SnakeYAML Engine, selecting an available implementation automatically.
+  </description>
 
   <dependencies>
     <dependency>

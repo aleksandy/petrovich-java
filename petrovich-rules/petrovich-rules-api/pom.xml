@@ -12,6 +12,10 @@
 
   <artifactId>petrovich-rules-api</artifactId>
   <name>petrovich-java rules API</name>
+  <description>
+    Rule model and lookup API for the inflection engine: rules, rule sets and
+    gender rules.
+  </description>
 
   <dependencies>
     <!-- Test dependencies -->

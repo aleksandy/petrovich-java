@@ -9,9 +9,8 @@
 
   <name>petrovich-java</name>
   <description>
-    Java implementation of Petrovich ruby gem.
-    It is library which inflects Russian names to given grammatical case.
-    It supports first names, last names and middle names inflections.
+    Java implementation of the Petrovich Ruby gem. Inflects Russian first
+    names, last names and middle names to a given grammatical case.
   </description>
 
   <url>https://github.com/aleksandy/petrovich-java</url>

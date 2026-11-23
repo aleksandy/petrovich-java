@@ -15,7 +15,8 @@
   <artifactId>petrovich-parity-tests</artifactId>
   <name>petrovich-java parity tests</name>
   <description>
-    End-to-end tests ported from petrovich-ruby. Test-only module, not published.
+    End-to-end parity tests ported from petrovich-ruby. Test-only module,
+    not published.
   </description>
 
   <properties>

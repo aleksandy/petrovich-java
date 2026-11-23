@@ -15,7 +15,9 @@
   <artifactId>petrovich-rules</artifactId>
   <packaging>pom</packaging>
   <name>petrovich-java rules</name>
-  <description>Rules API and its YAML-backed implementations.</description>
+  <description>
+    Aggregator module for the rules API and the YAML rule loaders.
+  </description>
 
   <modules>
     <module>petrovich-rules-api</module>

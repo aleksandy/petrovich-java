@@ -13,6 +13,11 @@
   </parent>
 
   <artifactId>petrovich-core</artifactId>
+  <name>petrovich-java core</name>
+  <description>
+    Inflection engine: declines Russian first names, last names and middle
+    names to a given grammatical case and detects their gender.
+  </description>
 
   <dependencies>
     <dependency>
