@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://central.sonatype.com/publishing/deployments
+
+    steps:
+      - name: Validate release tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
+
+          case "$tag" in
+            v*) ;;
+            *)
+              echo "Tag '$tag' must start with 'v'" >&2
+              exit 1
+              ;;
+          esac
+
+          if ! printf '%s\n' "${tag#v}" | grep -Eq "$semver"; then
+            echo "Tag '$tag' is not a semantic version" >&2
+            echo "Expected vMAJOR.MINOR.PATCH[-PRERELEASE][+BUILD], e.g. v2.0.0" >&2
+            exit 1
+          fi
+
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        id: jdk
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Configure Maven toolchains
+        run: |
+          mkdir -p "$HOME/.m2"
+          cat > "$HOME/.m2/toolchains.xml" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <toolchains>
+            <toolchain>
+              <type>jdk</type>
+              <provides>
+                <version>17</version>
+              </provides>
+              <configuration>
+                <jdkHome>${{ steps.jdk.outputs.path }}</jdkHome>
+              </configuration>
+            </toolchain>
+          </toolchains>
+          EOF
+
+      - name: Configure Maven credentials
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        run: |
+          cat > "$HOME/.m2/settings.xml" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <settings>
+            <servers>
+              <server>
+                <id>central</id>
+                <username>${CENTRAL_USERNAME}</username>
+                <password>${CENTRAL_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Import GPG key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: printf '%s\n' "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+      - name: Verify version matches tag
+        run: |
+          VERSION=$(./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout)
+          case "$VERSION" in
+            *-SNAPSHOT)
+              echo "Refusing to release SNAPSHOT version $VERSION" >&2
+              exit 1
+              ;;
+          esac
+          if [ "v$VERSION" != "${GITHUB_REF_NAME}" ]; then
+            echo "pom.xml version $VERSION does not match tag ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+
+      - name: Publish
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          ./mvnw -B --no-transfer-progress \
+            -DperformRelease=true \
+            -Dcentral.autoPublish=true \
+            -Dcentral.waitUntil=published \
+            deploy

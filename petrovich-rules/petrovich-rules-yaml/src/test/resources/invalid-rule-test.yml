@@ -1,0 +1,5 @@
+firstname:
+  suffixes:
+    - gender: male
+      test: []
+      mods: [а, у, а, ом, е]
