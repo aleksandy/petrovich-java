@@ -15,8 +15,30 @@ jobs:
   release:
     name: Publish to Maven Central
     runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://central.sonatype.com/publishing/deployments
 
     steps:
+      - name: Validate release tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
+
+          case "$tag" in
+            v*) ;;
+            *)
+              echo "Tag '$tag' must start with 'v'" >&2
+              exit 1
+              ;;
+          esac
+
+          if ! printf '%s\n' "${tag#v}" | grep -Eq "$semver"; then
+            echo "Tag '$tag' is not a semantic version" >&2
+            echo "Expected vMAJOR.MINOR.PATCH[-PRERELEASE][+BUILD], e.g. v2.0.0" >&2
+            exit 1
+          fi
+
       - name: Check out
         uses: actions/checkout@v7
         with:
