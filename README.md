@@ -1,3 +1,5 @@
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.aleksandy/petrovich-core?label=Maven%20Central)](https://central.sonatype.com/artifact/com.github.aleksandy/petrovich-core)
+
 petrovich-java
 ================
 
