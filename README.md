@@ -1,4 +1,6 @@
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.aleksandy/petrovich-core?label=Maven%20Central)](https://central.sonatype.com/artifact/com.github.aleksandy/petrovich-core)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.aleksandy/petrovich-core?style=for-the-badge&label=Maven%20Central)](https://central.sonatype.com/artifact/com.github.aleksandy/petrovich-core)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/aleksandy/petrovich-java/build.yml?style=for-the-badge&label=build "GitHub Actions")](https://github.com/aleksandy/petrovich-java/actions?query=workflow%3ABuild)
+[![License](https://img.shields.io/github/license/aleksandy/petrovich-java.svg?style=for-the-badge)](LICENSE.txt)
 
 petrovich-java
 ================
