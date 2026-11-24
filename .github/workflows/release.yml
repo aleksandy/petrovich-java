@@ -114,5 +114,5 @@ jobs:
           ./mvnw -B --no-transfer-progress \
             -DperformRelease=true \
             -Dcentral.autoPublish=true \
-            -Dcentral.waitUntil=published \
+            -Dcentral.waitUntil=validated \
             deploy
