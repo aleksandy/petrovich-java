@@ -54,3 +54,13 @@ jobs:
 
       - name: Build and test
         run: ./mvnw -B --no-transfer-progress clean verify
+
+      - name: Check license and notice files
+        run: |
+          test -f LICENSE
+          test -f NOTICE
+
+          for jar in $(find . -path '*/target/*.jar' ! -name '*sources*' ! -name '*javadoc*'); do
+            jar tf "$jar" | grep -q '^META-INF/LICENSE$'
+            jar tf "$jar" | grep -q '^META-INF/NOTICE$'
+          done

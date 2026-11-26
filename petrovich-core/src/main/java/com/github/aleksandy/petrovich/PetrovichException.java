@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2014-2026 Andrey Alekseenko
+ */
+
 package com.github.aleksandy.petrovich;
 
 import java.io.Serial;

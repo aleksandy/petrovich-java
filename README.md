@@ -1,12 +1,15 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.aleksandy/petrovich-core?style=for-the-badge&label=Maven%20Central)](https://central.sonatype.com/artifact/com.github.aleksandy/petrovich-core)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aleksandy/petrovich-java/build.yml?style=for-the-badge&label=build "GitHub Actions")](https://github.com/aleksandy/petrovich-java/actions?query=workflow%3ABuild)
-[![License](https://img.shields.io/github/license/aleksandy/petrovich-java.svg?style=for-the-badge)](LICENSE.txt)
+[![License](https://img.shields.io/github/license/aleksandy/petrovich-java.svg?style=for-the-badge)](LICENSE)
 
 petrovich-java
 ================
 
 Java-библиотека для склонения русских фамилий, имён и отчеств по падежам —
 реализация Ruby-гема [Petrovich](https://github.com/petrovich/petrovich-ruby).
+
+Это независимый порт. Официальный Java-порт проекта Petrovich — [`petrovich/petrovich-java`](https://github.com/petrovich/petrovich-java);
+данный проект не является его частью и не одобрен им.
 
 ## Модули
 
@@ -192,6 +195,16 @@ gender:
 Если часть составного (дефисного) имени не определяется правилами, она не
 перекрывает уже определённый пол другой части. Поэтому `Склодовская-Кюри`
 определяется как `FEMALE` (Ruby-гем вернул бы `:androgynous`).
+
+## Лицензия и происхождение
+
+Проект распространяется по MIT License — см. [LICENSE](LICENSE).
+
+Правила склонения и определения пола являются производными от [petrovich-rules](https://github.com/petrovich/petrovich-rules) (MIT, © 2013 Petrovich Developers).
+Тесты и тестовые данные портированы из [petrovich-ruby](https://github.com/petrovich/petrovich-ruby) (MIT, © 2013-2014 Andrew Kozloff & Dmitry Ustalov).
+Полные уведомления и текст лицензии — в [NOTICE](NOTICE).
+
+История изменений — в [CHANGELOG.md](CHANGELOG.md).
 
 ## Сборка и тесты
 

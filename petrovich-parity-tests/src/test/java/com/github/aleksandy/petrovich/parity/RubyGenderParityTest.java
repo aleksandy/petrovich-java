@@ -1,3 +1,10 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2013-2014 Andrew Kozloff & Dmitry Ustalov
+ * Copyright (c) 2014-2026 Andrey Alekseenko
+ * Ported from petrovich-ruby test/petrovich_gender_test.rb and test/petrovich_test.rb; adapted for this project.
+ */
+
 package com.github.aleksandy.petrovich.parity;
 
 import static com.github.aleksandy.petrovich.rules.Gender.ANDROGYNOUS;

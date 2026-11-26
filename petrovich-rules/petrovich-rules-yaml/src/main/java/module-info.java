@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2014-2026 Andrey Alekseenko
+ */
+
 /**
  * Загрузка правил склонения и определения пола из YAML-ресурсов classpath.
  */

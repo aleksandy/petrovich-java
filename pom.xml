@@ -12,6 +12,7 @@
     Java implementation of the Petrovich Ruby gem. Inflects Russian first
     names, last names and middle names to a given grammatical case.
   </description>
+  <inceptionYear>2014</inceptionYear>
 
   <url>https://github.com/aleksandy/petrovich-java</url>
   <licenses>
@@ -81,6 +82,19 @@
   </properties>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${maven.multiModuleProjectDirectory}</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>LICENSE</include>
+          <include>NOTICE</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <pluginManagement>
       <plugins>
         <plugin>
