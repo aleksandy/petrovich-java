@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="changelog" default="release" basedir=".">
+  <!--
+    Keeps CHANGELOG.md in sync with maven-release-plugin.
+
+    Invoked by the root POM with these properties:
+      changelog.file    - path to CHANGELOG.md
+      changelog.version - version being prepared/started
+
+    release      turns "## [X-SNAPSHOT]" into "## [X] — YYYY-MM-DD";
+                 does nothing when no matching chapter exists.
+    development  adds a new "## [X-SNAPSHOT]" chapter before the newest
+                 released chapter, if it does not exist yet.
+  -->
+
+  <target name="release">
+    <tstamp>
+      <format property="changelog.date" pattern="yyyy-MM-dd" />
+    </tstamp>
+
+    <replaceregexp
+      file="${changelog.file}"
+      match="^## \[${changelog.version}(?:-SNAPSHOT)?\][^\r\n]*"
+      replace="## [${changelog.version}] — ${changelog.date}"
+      flags="m"
+      encoding="UTF-8"
+      failonerror="true"
+    />
+  </target>
+
+  <target name="development-check">
+    <loadfile
+      property="changelog.contents"
+      srcFile="${changelog.file}"
+      encoding="UTF-8"
+    />
+    <condition property="changelog.development.present">
+      <contains string="${changelog.contents}" substring="## [${changelog.version}]" />
+    </condition>
+  </target>
+
+  <target name="development" depends="development-check" unless="changelog.development.present">
+    <replaceregexp
+      file="${changelog.file}"
+      match="(?m)^## \["
+      replace="## [${changelog.version}]${line.separator}${line.separator}## ["
+      encoding="UTF-8"
+      failonerror="true"
+    />
+  </target>
+
+</project>

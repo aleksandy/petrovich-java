@@ -5,7 +5,21 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 проект следует [Semantic Versioning](https://semver.org/lang/ru/).
 
-## [Не выпущено]
+## [2.0.3-SNAPSHOT]
+
+### Добавлено
+
+- После успешной публикации в Maven Central workflow создаёт GitHub Release;
+  описание берётся из соответствующей главы `CHANGELOG.md` и дополняется
+  автоматически сгенерированными notes.
+
+### Изменено
+
+- `maven-release-plugin` автоматически обновляет `CHANGELOG.md`: при
+  подготовке релиза убирает `-SNAPSHOT` и добавляет текущую дату, а для
+  следующего релизного цикла создаёт главу со snapshot-версией.
+
+## [2.0.2] — 2026-11-26
 
 ### Изменено
 

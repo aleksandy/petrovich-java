@@ -56,6 +56,8 @@
     <!-- release properties -->
     <central.autoPublish>false</central.autoPublish>
     <central.waitUntil>validated</central.waitUntil>
+    <changelog.file>${maven.multiModuleProjectDirectory}/CHANGELOG.md</changelog.file>
+    <changelog.version>${project.version}</changelog.version>
 
     <!-- plugins versions -->
     <maven-toolchains-plugin.version>3.3.0</maven-toolchains-plugin.version>
@@ -231,11 +233,42 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>changelog-release</id>
+            <configuration>
+              <target>
+                <ant antfile="${maven.multiModuleProjectDirectory}/src/main/ant/changelog.xml" target="release">
+                  <property name="changelog.file" value="${changelog.file}" />
+                  <property name="changelog.version" value="${changelog.version}" />
+                </ant>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>changelog-development</id>
+            <configuration>
+              <target>
+                <ant antfile="${maven.multiModuleProjectDirectory}/src/main/ant/changelog.xml" target="development">
+                  <property name="changelog.file" value="${changelog.file}" />
+                  <property name="changelog.version" value="${changelog.version}" />
+                </ant>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
           <autoVersionSubmodules>true</autoVersionSubmodules>
           <pushChanges>false</pushChanges>
           <tagNameFormat>v@{project.version}</tagNameFormat>
+          <preparationGoals>clean verify antrun:run@changelog-release</preparationGoals>
+          <completionGoals>antrun:run@changelog-development -N</completionGoals>
         </configuration>
       </plugin>
     </plugins>

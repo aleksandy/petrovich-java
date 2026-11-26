@@ -116,3 +116,74 @@ jobs:
             -Dcentral.autoPublish=true \
             -Dcentral.waitUntil=validated \
             deploy
+
+  create-release:
+    name: Create GitHub Release
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out
+        if: steps.existing.outputs.exists == 'false'
+        uses: actions/checkout@v7
+
+      - name: Extract release notes from CHANGELOG.md
+        if: steps.existing.outputs.exists == 'false'
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          notes_file="$RUNNER_TEMP/release-notes.md"
+
+          awk -v version="$version" '
+            $0 == "## [" version "]" || index($0, "## [" version "] ") == 1 {
+              capture = 1
+              next
+            }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > "$notes_file"
+
+          # Убираем пустые строки перед заголовком раздела.
+          sed -i '/./,$!d' "$notes_file"
+
+          if grep -q '[^[:space:]]' "$notes_file"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "path=$notes_file" >> "$GITHUB_OUTPUT"
+          else
+            echo "No CHANGELOG.md section found for version $version; using generated notes."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create release
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ "${{ steps.notes.outputs.available }}" = "true" ]; then
+            gh release create "${GITHUB_REF_NAME}" \
+              --verify-tag \
+              --generate-notes \
+              --notes "$(cat "${{ steps.notes.outputs.path }}")" \
+              --title "petrovich-java ${GITHUB_REF_NAME}"
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              --verify-tag \
+              --generate-notes \
+              --title "petrovich-java ${GITHUB_REF_NAME}"
+          fi
