@@ -9,7 +9,8 @@ This product includes material derived from the following projects:
    https://github.com/petrovich/petrovich-rules
    Copyright (c) 2013 Petrovich Developers
    Licensed under the MIT License.
-   Used for: rules.yml and gender.yml.
+   Used for: rules.yml and gender.yml, including updates taken from the
+   petrovich-ruby gem.
    Changes: the rule set was adapted and modified for this port.
 
 2. petrovich-ruby

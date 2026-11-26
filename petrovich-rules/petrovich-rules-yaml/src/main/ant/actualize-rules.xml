@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="actualize-rules" default="update" basedir=".">
+  <!--
+    Downloads rules.yml and gender.yml from the latest petrovich gem when
+    petrovich-rules.version in the module POM is out of date.
+
+    Invoked by the actualize-rules Maven profile with these properties:
+      actualize.buildDirectory  - Maven build directory
+      actualize.outputDirectory - directory for rules.yml and gender.yml
+      actualize.pomFile         - module POM containing petrovich-rules.version
+      actualize.currentVersion  - current petrovich-rules.version value
+  -->
+
+  <property name="actualize.dir" value="${actualize.buildDirectory}/actualize-rules" />
+  <property name="actualize.gemDir" value="${actualize.dir}/gem" />
+  <property name="actualize.actualizedDir" value="${actualize.dir}/actualized" />
+  <property name="actualize.rules" value="${actualize.actualizedDir}/rules.yml" />
+  <property name="actualize.gender" value="${actualize.actualizedDir}/gender.yml" />
+
+  <target name="resolve-version">
+    <mkdir dir="${actualize.dir}" />
+
+    <!-- Resolve the latest released version of the petrovich gem. -->
+    <get src="https://rubygems.org/api/v1/versions/petrovich/latest.json" dest="${actualize.dir}/latest.json" />
+    <replaceregexp
+       file="${actualize.dir}/latest.json"
+       match='^.*?"version":"([^"]+)".*$'
+       replace='\1'
+       flags="s"
+       encoding="UTF-8"
+    />
+    <loadfile property="actualize.latestVersion" srcFile="${actualize.dir}/latest.json" encoding="UTF-8" />
+
+    <echo message="petrovich-rules: current version ${actualize.currentVersion}, latest version ${actualize.latestVersion}" />
+
+    <condition property="actualize.outdated">
+      <not>
+        <equals arg1="${actualize.currentVersion}" arg2="${actualize.latestVersion}" />
+      </not>
+    </condition>
+  </target>
+
+  <target name="update" depends="resolve-version" if="actualize.outdated">
+    <echo message="Updating rules to petrovich ${actualize.latestVersion}" />
+
+    <!-- Gems are plain tar archives with a gzipped data.tar.gz inside. -->
+    <get src="https://rubygems.org/downloads/petrovich-${actualize.latestVersion}.gem" dest="${actualize.dir}/petrovich.gem" />
+    <untar src="${actualize.dir}/petrovich.gem" dest="${actualize.gemDir}" compression="none" />
+    <untar src="${actualize.gemDir}/data.tar.gz" dest="${actualize.gemDir}/data" compression="gzip" />
+
+    <available file="${actualize.gemDir}/data/rules/rules.yml" property="actualize.rules.present" />
+    <available file="${actualize.gemDir}/data/rules/gender.yml" property="actualize.gender.present" />
+
+    <fail message="petrovich gem ${actualize.latestVersion} does not contain rules/rules.yml and rules/gender.yml">
+      <condition>
+        <not>
+          <and>
+            <isset property="actualize.rules.present" />
+            <isset property="actualize.gender.present" />
+          </and>
+        </not>
+      </condition>
+    </fail>
+
+    <mkdir dir="${actualize.actualizedDir}" />
+
+    <!-- Keep the project's license header on the downloaded files. -->
+    <concat destfile="${actualize.rules}" fixlastline="yes">
+      <header filtering="false"># SPDX-License-Identifier: MIT
+# Copyright (c) 2013 Petrovich Developers
+# Copyright (c) 2014-2026 Andrey Alekseenko
+# Derived from https://github.com/petrovich/petrovich-rules
+# Actualized from the petrovich gem ${actualize.latestVersion}. See NOTICE.
+</header>
+      <filelist dir="${actualize.gemDir}/data/rules" files="rules.yml" />
+    </concat>
+    <concat destfile="${actualize.gender}" fixlastline="yes">
+      <header filtering="false"># SPDX-License-Identifier: MIT
+# Copyright (c) 2013 Petrovich Developers
+# Copyright (c) 2014-2026 Andrey Alekseenko
+# Derived from https://github.com/petrovich/petrovich-rules
+# Actualized from the petrovich gem ${actualize.latestVersion}. See NOTICE.
+</header>
+      <filelist dir="${actualize.gemDir}/data/rules" files="gender.yml" />
+    </concat>
+
+    <mkdir dir="${actualize.outputDirectory}" />
+    <copy file="${actualize.rules}" todir="${actualize.outputDirectory}" overwrite="true" />
+    <copy file="${actualize.gender}" todir="${actualize.outputDirectory}" overwrite="true" />
+
+    <!-- Remember the downloaded version in the module POM. -->
+    <replaceregexp
+      file="${actualize.pomFile}"
+      match="&lt;petrovich-rules\.version&gt;[^&lt;]*&lt;/petrovich-rules\.version&gt;"
+      replace="&lt;petrovich-rules.version&gt;${actualize.latestVersion}&lt;/petrovich-rules.version&gt;"
+      encoding="UTF-8"
+      failonerror="true"
+    />
+  </target>
+
+</project>

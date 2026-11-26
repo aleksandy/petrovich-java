@@ -206,6 +206,38 @@ gender:
 
 История изменений — в [CHANGELOG.md](CHANGELOG.md).
 
+## Обновление правил из petrovich-ruby
+
+Профиль `actualize-rules` сверяет версию правил из последнего релиза гема
+[petrovich](https://rubygems.org/gems/petrovich) со свойством
+`petrovich-rules.version` в `petrovich-rules-yaml/pom.xml`:
+
+- если версии совпадают, профиль ничего не скачивает и не обновляет;
+- если версии различаются, он скачивает `rules.yml` и `gender.yml`, добавляет
+  к ним SPDX-заголовок с версией гема, записывает файлы в `src/main/resources`
+  модуля `petrovich-rules-yaml` и обновляет `petrovich-rules.version`.
+
+Сейчас в свойстве указана версия `1.2.0`.
+
+```sh
+./mvnw -Pactualize-rules -pl petrovich-rules/petrovich-rules-yaml -am compile
+```
+
+Нужен доступ к `rubygems.org`. Профиль меняет файлы в рабочем дереве; после
+обновления проверьте diff и запустите тесты:
+
+```sh
+./mvnw test
+```
+
+Записать результат в другой каталог (например, чтобы сравнить перед
+обновлением) можно через
+`-Dpetrovich.rules.outputDirectory=/path/to/dir`. Скачанные файлы также
+остаются в `target/actualize-rules/`.
+
+Правила из свежего гема могут опережать возможности Java-реализации, поэтому
+после обновления обязательно проверяйте diff и тесты.
+
 ## Сборка и тесты
 
 Для сборки нужен JDK 17 или новее. `maven-toolchains-plugin` выбирает любой

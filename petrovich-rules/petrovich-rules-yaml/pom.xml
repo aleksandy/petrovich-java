@@ -73,4 +73,40 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>actualize-rules</id>
+      <properties>
+        <petrovich.rules.outputDirectory>${project.basedir}/src/main/resources</petrovich.rules.outputDirectory>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>actualize-rules</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <ant antfile="${project.basedir}/src/main/ant/actualize-rules.xml" target="update">
+                      <property name="actualize.buildDirectory" value="${project.build.directory}"/>
+                      <property name="actualize.outputDirectory" value="${petrovich.rules.outputDirectory}"/>
+                      <property name="actualize.pomFile" value="${project.basedir}/pom.xml"/>
+                      <property name="actualize.currentVersion" value="${petrovich-rules.version}"/>
+                    </ant>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
