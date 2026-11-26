@@ -9,38 +9,27 @@
   </parent>
 
   <artifactId>petrovich-core</artifactId>
-  <name>petrovich-java core</name>
+  <packaging>pom</packaging>
+  <name>petrovich-java core (relocated)</name>
   <description>
-    Inflection engine: declines Russian first names, last names and middle
-    names to a given grammatical case and detects their gender.
+    Relocation artifact kept for compatibility. The inflection engine has been
+    renamed to petrovich-engine; this POM redirects old dependencies to it.
   </description>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.github.aleksandy</groupId>
-      <artifactId>petrovich-rules-api</artifactId>
-    </dependency>
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>com.github.aleksandy</groupId>
-      <artifactId>petrovich-rules-yaml</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <properties>
+    <!-- Relocation POM: no sources or javadocs to attach. -->
+    <maven.source.skip>true</maven.source.skip>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+  </properties>
+
+  <distributionManagement>
+    <relocation>
+      <artifactId>petrovich-engine</artifactId>
+      <message>
+        petrovich-core has been renamed to petrovich-engine. Update the
+        dependency artifactId to com.github.aleksandy:petrovich-engine.
+      </message>
+    </relocation>
+  </distributionManagement>
 
 </project>

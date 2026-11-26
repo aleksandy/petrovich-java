@@ -26,7 +26,7 @@
   <dependencies>
     <dependency>
       <groupId>com.github.aleksandy</groupId>
-      <artifactId>petrovich-core</artifactId>
+      <artifactId>petrovich-engine</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

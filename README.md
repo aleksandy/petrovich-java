@@ -1,4 +1,4 @@
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.aleksandy/petrovich-core?style=for-the-badge&label=Maven%20Central)](https://central.sonatype.com/artifact/com.github.aleksandy/petrovich-core)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.aleksandy/petrovich-engine?style=for-the-badge&label=Maven%20Central)](https://central.sonatype.com/artifact/com.github.aleksandy/petrovich-engine)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aleksandy/petrovich-java/build.yml?style=for-the-badge&label=build "GitHub Actions")](https://github.com/aleksandy/petrovich-java/actions?query=workflow%3ABuild)
 [![License](https://img.shields.io/github/license/aleksandy/petrovich-java.svg?style=for-the-badge)](LICENSE)
 
@@ -15,7 +15,8 @@ Java-библиотека для склонения русских фамили�
 
 | Модуль | Назначение |
 |---|---|
-| `petrovich-core` | склонение (`Petrovich`, `Names`, `Case`) и определение пола |
+| `petrovich-engine` | склонение (`Petrovich`, `Names`, `Case`) и определение пола |
+| `petrovich-core` | relocation-артефакт для совместимости: перенаправляет старую координату на `petrovich-engine` |
 | `petrovich-rules` | агрегатор модулей правил |
 | `petrovich-rules-api` | API правил (`Rules`, `Rule`, `RuleSet`, `GenderRules`) |
 | `petrovich-rules-yaml` | загрузка правил из `rules.yml` / `gender.yml` (`YamlRules`); реализации на Jackson 2, Jackson 3, SnakeYAML и SnakeYAML Engine |
@@ -28,7 +29,7 @@ Java-библиотека для склонения русских фамили�
 
 ## Maven dependency
 
-Для работы нужны `petrovich-core` (сам движок), `petrovich-rules-yaml`
+Для работы нужны `petrovich-engine` (сам движок), `petrovich-rules-yaml`
 (встроенные правила в classpath) и хотя бы одна из библиотек разбора YAML.
 `petrovich-rules-yaml` объявляет все четыре библиотеки опциональными,
 поэтому выбранную нужно подключить явно. Если подключено несколько,
@@ -38,7 +39,7 @@ Jackson 2, SnakeYAML. Например, для Jackson 2:
 ```xml
 <dependency>
   <groupId>com.github.aleksandy</groupId>
-  <artifactId>petrovich-core</artifactId>
+  <artifactId>petrovich-engine</artifactId>
   <version>${petrovich.version}</version>
 </dependency>
 <dependency>
@@ -53,7 +54,11 @@ Jackson 2, SnakeYAML. Например, для Jackson 2:
 </dependency>
 ```
 
-`petrovich-core` транзитивно подтягивает `petrovich-rules-api`.
+`petrovich-engine` транзитивно подтягивает `petrovich-rules-api`.
+
+Старая координата `petrovich-core` сохранена как relocation-POM: Maven
+предупредит о переименовании и подставит `petrovich-engine`. Новым проектам
+следует зависеть сразу от `petrovich-engine`.
 
 ## Использование
 
@@ -440,7 +445,7 @@ Job объявляет `environment: release`, поэтому берёт сек�
 1. Убедиться, что версия ещё не публиковалась (`404` — версия свободна):
 
    ```sh
-   curl -sI https://repo1.maven.org/maven2/com/github/aleksandy/petrovich-core/2.0.0/ | head -1
+   curl -sI https://repo1.maven.org/maven2/com/github/aleksandy/petrovich-engine/2.0.0/ | head -1
    ```
 
 2. На `master` выставить релизную версию, собрать и закоммитить:

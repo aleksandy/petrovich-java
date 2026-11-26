@@ -5,6 +5,17 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 проект следует [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [Не выпущено]
+
+### Изменено
+
+- Артефакт `petrovich-core` переименован в `petrovich-engine`; модуль и его
+  каталог теперь называются `petrovich-engine`.
+- Старая координата `petrovich-core` сохранена как relocation-POM: Maven
+  предупреждает о переименовании и подставляет `petrovich-engine`.
+- `petrovich-parity-tests`, `dependencyManagement` и README переведены на
+  новый `artifactId`.
+
 ## [2.0.1] — 2026-11-26
 
 Релиз приводит в порядок лицензионные уведомления и обновляет правила до

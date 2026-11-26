@@ -38,6 +38,7 @@
   </developers>
 
   <modules>
+    <module>petrovich-engine</module>
     <module>petrovich-core</module>
     <module>petrovich-rules</module>
     <module>petrovich-parity-tests</module>
@@ -245,7 +246,7 @@
       <!-- project modules -->
       <dependency>
         <groupId>com.github.aleksandy</groupId>
-        <artifactId>petrovich-core</artifactId>
+        <artifactId>petrovich-engine</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
