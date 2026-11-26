@@ -2,8 +2,7 @@
 # Copyright (c) 2013 Petrovich Developers
 # Copyright (c) 2014-2026 Andrey Alekseenko
 # Derived from https://github.com/petrovich/petrovich-rules
-# Modified for petrovich-java. See NOTICE.
-#
+# Actualized from the petrovich gem 1.2.0. See NOTICE.
 # Порядок имеет значение!
 # http://to-name.ru/surname/familnye-okonchania.htm
 # http://gramma.ru/SPR/?id=2.1
@@ -27,8 +26,26 @@ lastname:
         - мелик
         - вар
         - фон
+        - дер
+        - ла
+        - де
+        - да
+        - душ
+        - ле
+        - сент
+        - грум
+        - кара
       mods: [., ., ., ., .]
       tags: [first_word]
+
+    # Беглая гласная в отдельных словах.
+    - gender: male
+      test: [заяц]
+      mods: [--йца, --йцу, --йца, --йцем, --йце]
+
+    - gender: male
+      test: [отец]
+      mods: [--ца, --цу, --ца, --цом, --це]
 
     - gender: androgynous
       test: [дюма, тома, дега, люка, ферма, гамарра, петипа, шандра, скаля, каруана]
@@ -59,7 +76,7 @@ lastname:
     - gender: female
       test: [ска, цка]
       mods: [-ой, -ой, -ую, -ой, -ой]
-      
+
     # Осадчая, Горячая
     - gender: female
       test: [чая]
@@ -68,12 +85,12 @@ lastname:
     # Горячий
     - gender: male
       test: [чий]
-      mods: [--его, --ему, --его, --им, --ем]   
+      mods: [--его, --ему, --его, --им, --ем]
 
     # Захожая
     - gender: female
       test: [жая]
-      mods: [--ей, --ей, --ую, --ей, --ей]      
+      mods: [--ей, --ей, --ую, --ей, --ей]
 
     # Дубовицкая, Суперанская, Лесная, Барановская
     - gender: female
@@ -170,9 +187,9 @@ lastname:
       test: [нец, мец, робец]
       mods: [--ца, --цу, --ца, --цем, --це]
 
-    # Порывай
+    # Порывай, Гайдай, Битяй
     - gender: male
-      test: [ай]
+      test: [ай, яй, юй]
       mods: [-я, -ю, -я, -ем, -е]
 
     # Дорогой, Руцкой
@@ -247,6 +264,12 @@ lastname:
 
 firstname:
   exceptions:
+    # Не двойное имя, а нарицательное слово с именем: склоняются обе части.
+    - gender: female
+      test: [баба]
+      mods: [-ы, -е, -у, -ой, -е]
+      tags: [first_word]
+
     - gender: male
       test: [лев]
       mods: [--ьва, --ьву, --ьва, --ьвом, --ьве]
@@ -280,6 +303,17 @@ firstname:
       mods: [-и, -е, -ю, -ёй, -е]
 
   suffixes:
+    # Двойное имя: непоследняя часть не склоняется (Жан-Поль → Жан-Поля).
+    - gender: androgynous
+      test: ['']
+      mods: [., ., ., ., .]
+      tags: [first_word]
+
+    - gender: female
+      test: ['']
+      mods: [., ., ., ., .]
+      tags: [first_word]
+
     - gender: androgynous
       test: [е, ё, и, о, у, ы, э, ю]
       mods: [., ., ., ., .]

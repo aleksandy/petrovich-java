@@ -86,11 +86,11 @@ class RubyInflectionParityTest {
                 DATIVE,
                 new Names("Воробей", null, null, FEMALE)
             ),
-            // it 'inflects firstname 2'
+            // it 'inflects firstname 2' — двойное имя склоняет только последнюю часть
             Arguments.of(
                 new Names(null, "Анна-Мария", null, FEMALE),
                 DATIVE,
-                new Names(null, "Анне-Марии", null, FEMALE)
+                new Names(null, "Анна-Марии", null, FEMALE)
             ),
             // it 'inflects middlename 1'
             Arguments.of(

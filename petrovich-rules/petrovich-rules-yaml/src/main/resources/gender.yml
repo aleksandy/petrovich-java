@@ -2,8 +2,7 @@
 # Copyright (c) 2013 Petrovich Developers
 # Copyright (c) 2014-2026 Andrey Alekseenko
 # Derived from https://github.com/petrovich/petrovich-rules
-# Modified for petrovich-java. See NOTICE.
-#
+# Actualized from the petrovich gem 1.2.0. See NOTICE.
 # Эвристики для определения пола
 gender:
   lastname:
@@ -199,6 +198,8 @@ gender:
         - сураба
         - любава
         - джанлука
+        - урсула
+        - пенелопа
         - варвара
         - наташа
         - зайнаб

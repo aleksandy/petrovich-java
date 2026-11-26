@@ -12,8 +12,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.github.aleksandy.petrovich.rules.Gender;
 import com.github.aleksandy.petrovich.rules.Rule;
@@ -31,6 +36,16 @@ import com.github.aleksandy.petrovich.rules.Rules;
 class CaseInflection {
 
     private static final Locale RUSSIA = Locale.forLanguageTag("ru-RU");
+
+    /**
+     * Разделитель слов в составной части имени: серия дефисов и пробелов.
+     */
+    private static final Pattern WORD_SEPARATOR = Pattern.compile("[- ]+");
+
+    /**
+     * Контекстный тег для всех слов составной части имени, кроме последнего.
+     */
+    private static final String FIRST_WORD_TAG = "first_word";
 
     private final Rules rules;
     private final Gender gender;
@@ -63,22 +78,53 @@ class CaseInflection {
             throw new PetrovichException("Name must not be blank.");
         }
 
-        String[] chunks = name.split("-");
-        if (chunks.length == 0) {
-            return name;
-        }
+        List<String> words = new ArrayList<>();
+        List<String> separators = new ArrayList<>();
+        tokenize(name, words, separators);
 
-        for (int idx = 0; idx < chunks.length; idx++) {
+        for (int idx = 0, size = words.size(); idx < size; idx++) {
+            boolean last = idx == size - 1;
             // Строгий режим по полу применяется только к последней части
             // составного имени — как в ruby (find_all_case_rules).
-            boolean knownGenderChunk = this.knownGender && idx == chunks.length - 1;
-            Rule rule = findFor(chunks[idx], ruleSet, knownGenderChunk);
+            boolean knownGenderChunk = this.knownGender && last;
+            // Все слова, кроме последнего, находятся в контексте first_word:
+            // правила с этим тегом (несклоняемые частицы) применяются только там.
+            Set<String> contextTags = last ? Set.of() : Set.of(FIRST_WORD_TAG);
+
+            Rule rule = findFor(words.get(idx), ruleSet, knownGenderChunk, contextTags);
             if (rule != null) {
-                chunks[idx] = apply(chunks[idx], rule, inflectionCase);
+                words.set(idx, apply(words.get(idx), rule, inflectionCase));
             }
         }
 
-        return String.join("-", chunks);
+        // Разделители (дефисы и пробелы) сохраняются как в исходном имени.
+        StringBuilder result = new StringBuilder(name.length() + 5);
+        for (int idx = 0; idx < words.size(); idx++) {
+            result.append(words.get(idx));
+            if (idx < separators.size()) {
+                result.append(separators.get(idx));
+            }
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Разбивает часть имени на слова и разделители, как ruby
+     * {@code WORD_SEPARATOR_CAPTURE}: слова попадают в {@code words},
+     * а идущие между ними серии дефисов и пробелов — в {@code separators}.
+     */
+    private static void tokenize(String name, List<String> words, List<String> separators) {
+        Matcher matcher = WORD_SEPARATOR.matcher(name);
+        int position = 0;
+
+        while (matcher.find()) {
+            words.add(name.substring(position, matcher.start()));
+            separators.add(matcher.group());
+            position = matcher.end();
+        }
+
+        words.add(name.substring(position));
     }
 
     private String apply(String name, Rule rule, Case inflectionCase) {
@@ -117,21 +163,30 @@ class CaseInflection {
     /**
      * Ищет правило для части имени.
      *
-     * <p>Порядок как в ruby: при явно заданном поле сначала ищем правило,
-     * совпадающее по полу; если такого нет — повторяем поиск в мягком режиме
-     * (androgynous). Теги правил при матчинге не учитываются.
+     * <p>Порядок как в ruby: сначала ищем правило, совпадающее по полу; если
+     * такого нет — повторяем поиск в мягком режиме (androgynous). Правило
+     * учитывается, только если все его теги входят в контекстные теги слова.
      */
-    private Rule findFor(String name, RuleSet ruleSet, boolean knownGenderChunk) {
-        Rule rule = find(name, ruleSet.exceptions(), true, this.gender, knownGenderChunk);
+    private Rule findFor(
+        String name,
+        RuleSet ruleSet,
+        boolean knownGenderChunk,
+        Set<String> contextTags
+    ) {
+        Rule rule = find(
+            name, ruleSet.exceptions(), true, this.gender, knownGenderChunk, contextTags
+        );
         if (rule == null) {
-            rule = find(name, ruleSet.suffixes(), false, this.gender, knownGenderChunk);
+            rule = find(
+                name, ruleSet.suffixes(), false, this.gender, knownGenderChunk, contextTags
+            );
         }
 
-        if (rule == null && knownGenderChunk) {
+        if (rule == null) {
             // Fallback на androgynous, как в ruby find_case_rule.
-            rule = find(name, ruleSet.exceptions(), true, ANDROGYNOUS, false);
+            rule = find(name, ruleSet.exceptions(), true, ANDROGYNOUS, false, contextTags);
             if (rule == null) {
-                rule = find(name, ruleSet.suffixes(), false, ANDROGYNOUS, false);
+                rule = find(name, ruleSet.suffixes(), false, ANDROGYNOUS, false, contextTags);
             }
         }
 
@@ -143,10 +198,12 @@ class CaseInflection {
         List<Rule> rules,
         boolean matchWholeWord,
         Gender matchGender,
-        boolean strictGender
+        boolean strictGender,
+        Set<String> contextTags
     ) {
         String loweredName = name.toLowerCase(RUSSIA);
         return rules.stream()
+            .filter(rule -> contextTags.containsAll(rule.tags()))
             .filter(rule -> genderMatches(rule.gender(), matchGender, strictGender))
             .filter(rule -> nameMatches(loweredName, rule, matchWholeWord))
             .findFirst()
